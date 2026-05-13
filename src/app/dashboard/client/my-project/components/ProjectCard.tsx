@@ -13,21 +13,21 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
     // Mapping Backend Data to UI
     const title = project.name;
-    const location = project.location?.address || 'Unknown Location';
+    // const location = project.location?.address || 'Unknown Location';
     const image = project.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80'; // Fallback
-    const workPhase = project.workPhase || 'LEAD'; 
+    const workPhase = project.workPhase || 'LEAD';
     const statusLabel = project.statusLabel || project.status; // Use status as label if no specific label
     const lastUpdate = project.lastUpdate || 'Recently';
 
     // Status Config
     // Ensure mapping exists, or provide default
-    const statusConfig = getStatusConfig(project.status as any) || getStatusConfig('new'); 
-    
+    const statusConfig = getStatusConfig(project.status as any) || getStatusConfig('new');
+
     // Permission Check
     // Example: const canEdit = project.permissions?.canEdit;
 
     return (
-        <Link 
+        <Link
             href={`/dashboard/client/my-project/${project.id}`}
             className="block"
         >
@@ -54,12 +54,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
                     </h3>
                     <div className="flex items-center gap-1.5 text-slate-500 text-sm mb-2">
                         <MapPin size={14} />
-                        <span className="truncate">{location}</span>
+                        <span className="truncate">{project.location?.address || 'Unknown Location'}</span>
                     </div>
 
                     {/* Work Phase Badge */}
                     <div className="mb-3">
-                        <span 
+                        <span
                             className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md text-white"
                             style={{ backgroundColor: (WORK_PHASE_LABELS[workPhase] || WORK_PHASE_LABELS['LEAD']).color }}
                         >
@@ -74,9 +74,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
                             <span className="font-medium text-slate-700">{project.progress}%</span>
                         </div>
                         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
+                            <div
                                 className="h-full rounded-full transition-all duration-500"
-                                style={{ 
+                                style={{
                                     width: `${project.progress}%`,
                                     backgroundColor: project.status === 'attention' ? '#ef4444' : BRAND.primary
                                 }}
@@ -94,7 +94,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                         {/* Permission-Gated Action: Review */}
                         {/* Only show 'Review' if status is attention (logic retained) */}
                         {project.status === 'attention' && (
-                            <span 
+                            <span
                                 className="px-3 py-1.5 text-white text-xs font-semibold rounded-lg"
                                 style={{ backgroundColor: BRAND.primary }}
                             >

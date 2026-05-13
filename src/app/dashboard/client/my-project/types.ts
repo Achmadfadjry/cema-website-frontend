@@ -26,7 +26,7 @@ export interface Project {
   id?: string; // Optional (frontend convenience)
   name: string; // Backend sends 'name', mapped to 'title' in UI if needed
   title?: string; // UI convenience field (mapped from name)
-  location: {
+  location?: {
     address: string;
   };
   status: ProjectStatus; // BE sends string, we might need mapping
