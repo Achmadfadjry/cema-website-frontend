@@ -4,8 +4,13 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: "/api/(?!auth)/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+        fallback: [
+          {
+            source: "/api/:path*",
+            destination:
+              "https://api-cema-backend-grdzhqgzd4gufwgg.southeastasia-01.azurewebsites.net/api/:path*",
+          },
+        ],
       },
     ];
   },
