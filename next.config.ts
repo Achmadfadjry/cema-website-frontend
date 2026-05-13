@@ -2,17 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig = {
   async rewrites() {
-    return [
-      {
-        fallback: [
-          {
-            source: "/api/:path*",
-            destination:
-              "https://api-cema-backend-grdzhqgzd4gufwgg.southeastasia-01.azurewebsites.net/api/:path*",
-          },
-        ],
-      },
-    ];
+    return {
+      fallback: [
+        {
+          source: "/api/:path*",
+          destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+        },
+      ],
+    };
   },
   images: {
     remotePatterns: [
