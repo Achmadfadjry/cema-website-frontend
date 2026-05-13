@@ -28,7 +28,7 @@ export default function ProjectListClient({ initialProjects }: ProjectListClient
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
-            result = result.filter(p => 
+            result = result.filter(p =>
                 (p.name || '').toLowerCase().includes(query) ||
                 (p.location?.address || '').toLowerCase().includes(query)
             );
@@ -55,25 +55,25 @@ export default function ProjectListClient({ initialProjects }: ProjectListClient
     };
 
     return (
-        <div className="flex flex-col h-full"> 
+        <div className="flex flex-col h-full">
             {/* Added container for layout structure */}
-            <Toolbar 
+            <Toolbar
                 searchQuery={searchQuery}
                 setSearchQuery={handleSearch}
                 statusFilter={statusFilter}
                 setStatusFilter={handleFilterChange}
                 projectCount={filteredProjects.length}
             />
-            
+
             <div className="flex-1 overflow-y-auto scrollbar-thin">
                 <div className="max-w-7xl mx-auto px-6 py-6">
                     {paginatedProjects.length > 0 ? (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {paginatedProjects.map(project => (
-                                    <ProjectCard 
-                                        key={project._id} 
-                                        project={project} 
+                                    <ProjectCard
+                                        key={project._id}
+                                        project={project}
                                     />
                                 ))}
                             </div>
@@ -87,7 +87,7 @@ export default function ProjectListClient({ initialProjects }: ProjectListClient
                             />
                         </>
                     ) : (
-                        <EmptyState 
+                        <EmptyState
                             title="No Projects Found"
                             description="Try changing the filter or search keywords"
                         />

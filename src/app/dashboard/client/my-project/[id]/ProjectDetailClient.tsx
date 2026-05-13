@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { 
-    MapPin, 
-    ArrowLeft, 
-    FileText, 
-    Calendar, 
-    MessageCircle, 
-    LayoutGrid 
+import {
+    MapPin,
+    ArrowLeft,
+    FileText,
+    Calendar,
+    MessageCircle,
+    LayoutGrid
 } from 'lucide-react';
 import type { Project } from '../types';
 import { BRAND, WORK_PHASE_LABELS, getStatusConfig } from '../constants';
@@ -21,7 +21,7 @@ interface ProjectDetailClientProps {
 export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'overview' | 'files'>('overview');
-    
+
     // Safety Fallbacks
     const statusConfig = getStatusConfig(project.status) || getStatusConfig('new');
     const workPhaseConfig = WORK_PHASE_LABELS[project.workPhase] || WORK_PHASE_LABELS['LEAD'];
@@ -60,7 +60,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                         <span>{project.statusLabel}</span>
                     </div>
                 </div>
-                
+
                 {/* Location + Work Phase */}
                 <div className="flex items-center gap-3 text-slate-500 mb-6">
                     <div className="flex items-center gap-1.5">
@@ -68,7 +68,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                         <span>{project.location?.address || 'Unknown Location'}</span>
                     </div>
                     <span className="text-gray-300">•</span>
-                    <span 
+                    <span
                         className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md text-white"
                         style={{ backgroundColor: workPhaseConfig.color }}
                     >
@@ -93,11 +93,10 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                                activeTab === tab.id
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
                                     ? 'bg-green-50 text-[#8CC540]'
                                     : 'text-slate-600 hover:bg-gray-100'
-                            }`}
+                                }`}
                         >
                             {tab.icon}
                             {tab.label}
@@ -126,7 +125,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                                             <span className="font-semibold text-slate-800">{project.progress}%</span>
                                         </div>
                                         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                                            <div 
+                                            <div
                                                 className="h-full rounded-full transition-all duration-500"
                                                 style={{ width: `${project.progress}%`, backgroundColor: BRAND.primary }}
                                             />
@@ -170,7 +169,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                                                             {doc.title}
                                                         </p>
                                                         <div className="flex items-center gap-2 mt-1">
-                                                            <span 
+                                                            <span
                                                                 className="text-xs font-medium px-2 py-0.5 rounded text-white"
                                                                 style={{ backgroundColor: typeConfig.color }}
                                                             >
@@ -220,7 +219,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                         {/* Project Manager Card */}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                             <h3 className="font-semibold text-slate-800 mb-4">Project Manager</h3>
-                            
+
                             {/* PM Profile */}
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-gray-100">
@@ -238,7 +237,7 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
                             </div>
 
                             {/* WhatsApp Button */}
-                            <button 
+                            <button
                                 onClick={handleWhatsApp}
                                 className="w-full flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-md"
                                 style={{ backgroundColor: BRAND.primary }}
