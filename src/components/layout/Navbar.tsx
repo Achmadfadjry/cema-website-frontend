@@ -29,6 +29,7 @@ export function Navbar() {
         id: session.user.id || "current",
         name: session.user.name || "User",
         email: session.user.email || "",
+        profilePicture: session.user.profilePicture || null,
         role: (session.user.role as UserRole) || UserRole.GUEST,
       }
     : null;

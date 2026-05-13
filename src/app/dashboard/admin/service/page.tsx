@@ -11,6 +11,7 @@ import {
   UploadCloud,
   CheckCircle,
   AlertCircle,
+  Pencil,
 } from "lucide-react";
 import {
   fetchServicesAction,
@@ -50,6 +51,8 @@ export default function ServicesPage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
 
   // State untuk Notifikasi (Toast)
   const [notification, setNotification] = useState<NotificationState>({
@@ -117,7 +120,7 @@ export default function ServicesPage() {
     reader.readAsDataURL(file);
   };
 
-  // --- HANDLER SAVE (CREATE) ---
+  // --- HANDLER SAVE (CREATE & UPDATE) ---
   const handleSave = async () => {
     if (!formData.title || !formData.category) return;
 
@@ -131,13 +134,22 @@ export default function ServicesPage() {
         image: formData.image,
         isShown: formData.isShown,
         isPopular: false,
-        features: [],
+        features: formData.features || [],
       };
 
-      const result = await createServiceAction(payload);
+      let result;
+      if (isEditMode && editingServiceId) {
+        // UPDATE mode
+        result = await updateServiceAction(editingServiceId, payload);
+      } else {
+        // CREATE mode
+        result = await createServiceAction(payload);
+      }
 
       if (result.success) {
         setIsFormModalOpen(false);
+        setIsEditMode(false);
+        setEditingServiceId(null);
         setFormData({
           title: "",
           category: "",
@@ -147,7 +159,12 @@ export default function ServicesPage() {
           description: "",
         });
         fetchServices();
-        showToast("Layanan berhasil disimpan!", "success");
+        showToast(
+          isEditMode
+            ? "Layanan berhasil diperbarui!"
+            : "Layanan berhasil disimpan!",
+          "success"
+        );
       } else {
         console.error("Gagal simpan:", result.message);
         showToast(`Gagal menyimpan: ${result.message}`, "error");
@@ -164,6 +181,21 @@ export default function ServicesPage() {
   const openDeleteModal = (id: string) => {
     setServiceToDelete(id);
     setIsDeleteModalOpen(true);
+  };
+
+  const openEditModal = (service: ServiceItem) => {
+    setFormData({
+      title: service.title,
+      category: service.category,
+      price: service.price,
+      description: service.description,
+      image: service.image,
+      isShown: service.isShown,
+      features: service.features,
+    });
+    setEditingServiceId(service.id);
+    setIsEditMode(true);
+    setIsFormModalOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -246,7 +278,19 @@ export default function ServicesPage() {
       <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
         <h3 className="font-bold text-lg text-gray-900">Manajemen Layanan</h3>
         <button
-          onClick={() => setIsFormModalOpen(true)}
+          onClick={() => {
+            setIsEditMode(false);
+            setEditingServiceId(null);
+            setFormData({
+              title: "",
+              category: "",
+              price: "0",
+              isShown: true,
+              image: "",
+              description: "",
+            });
+            setIsFormModalOpen(true);
+          }}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium"
         >
           <Plus size={16} /> Tambah Data
@@ -320,11 +364,14 @@ export default function ServicesPage() {
                     {/* KOLOM 4: Status */}
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => handleToggleStatus(service.id, service.isShown)}
-                        className={`inline-block px-3 py-1 rounded text-xs font-bold transition-all ${service.isShown
-                          ? "bg-green-100 text-green-700 border border-green-200 hover:bg-green-200"
-                          : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-                          }`}
+                        onClick={() =>
+                          handleToggleStatus(service.id, service.isShown)
+                        }
+                        className={`inline-block px-3 py-1 rounded text-xs font-bold transition-all ${
+                          service.isShown
+                            ? "bg-green-100 text-green-700 border border-green-200 hover:bg-green-200"
+                            : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
+                        }`}
                       >
                         {service.isShown ? "Aktif" : "Nonaktif"}
                       </button>
@@ -332,6 +379,13 @@ export default function ServicesPage() {
 
                     {/* KOLOM 5: Aksi */}
                     <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => openEditModal(service)}
+                        className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors mr-1"
+                        title="Ubah"
+                      >
+                        <Pencil size={18} />
+                      </button>
                       <button
                         onClick={() => openDeleteModal(service.id)}
                         className="text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors"
@@ -353,7 +407,9 @@ export default function ServicesPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-900">Tambah Layanan</h3>
+              <h3 className="font-bold text-gray-900">
+                {isEditMode ? "Edit Layanan" : "Tambah Layanan"}
+              </h3>
               <button onClick={() => setIsFormModalOpen(false)}>
                 <X size={20} className="text-gray-500 hover:text-gray-700" />
               </button>
@@ -492,10 +548,11 @@ export default function ServicesPage() {
       {/* TOAST NOTIFICATION */}
       {notification.show && (
         <div
-          className={`fixed bottom-10 right-10 px-6 py-4 rounded-lg shadow-xl border flex items-center gap-3 animate-in slide-in-from-right duration-300 z-[100] ${notification.type === "success"
-            ? "bg-green-50 border-green-200 text-green-800"
-            : "bg-red-50 border-red-200 text-red-800"
-            }`}
+          className={`fixed bottom-10 right-10 px-6 py-4 rounded-lg shadow-xl border flex items-center gap-3 animate-in slide-in-from-right duration-300 z-[100] ${
+            notification.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
         >
           {notification.type === "success" ? (
             <CheckCircle size={24} className="text-green-600" />

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { User, LayoutDashboard } from "lucide-react";
 import { signOut } from "next-auth/react";
 import type { User as UserType } from "@/lib/types";
+import Image from "next/image";
 
 interface UserMenuProps {
   user: UserType;
@@ -57,7 +58,17 @@ export function UserMenu({ user }: UserMenuProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-center w-10 h-10 rounded-full bg-[#00BCD4] text-white font-semibold text-sm hover:bg-[#00ACC1] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00BCD4] focus:ring-offset-2"
       >
-        {getInitials(user.name)}
+        {user.profilePicture ? (
+          <Image
+            width={320}
+            height={320}
+            src={user.profilePicture}
+            alt={user.name}
+            className="w-full h-full rounded-full object-cover"
+          />
+        ) : (
+          getInitials(user.name)
+        )}
       </button>
 
       {/* Dropdown Menu */}
