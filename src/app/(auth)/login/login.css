@@ -1,14 +1,11 @@
 
-* {
+.login-container {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: "Poppins", sans-serif;
-}
-
-.login-container {
-  width: 100%;
-  min-height: 100dvh;
+    width: 100%;
+    min-height: 100dvh;
     display: flex;
     flex-direction: row;
     color: #333;
@@ -23,6 +20,17 @@
 .login-container h2,
 .login-container p {
     color: #333;
+}
+
+.h-content {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.p-content {
+  font-size: 20px;
+  margin: 0;
 }
 
 .left-container {

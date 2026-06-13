@@ -141,10 +141,8 @@ export default function ServicesPage() {
 
       let result;
       if (isEditMode && editingServiceId) {
-        // UPDATE mode
         result = await updateServiceAction(editingServiceId, payload);
       } else {
-        // CREATE mode
         result = await createServiceAction(payload);
       }
 

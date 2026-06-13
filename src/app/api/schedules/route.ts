@@ -6,12 +6,12 @@ import { auth } from "@/auth";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
- * BFF API Route for Booking
- * Handles POST /api/booking
+ * BFF API Route for Schedules
+ * Handles POST /api/schedules
  *
- * This route receives booking data from the client,
+ * This route receives booking/schedule data from the client,
  * attaches the auth token from the httpOnly cookie,
- * and forwards the request to the backend.
+ * and forwards the request to the backend /schedules endpoint.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("❌ [BFF] Booking API Error:", error);
+    console.error("❌ [BFF] Schedules API Error:", error);
     return NextResponse.json(
       { status: "error", message: "Internal server error" },
       { status: 500 }

@@ -7,7 +7,6 @@ import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { auth, googleProvider } from "../../../lib/firebase";
 import { signInWithPopup } from "firebase/auth";
-import "../login/login.css";
 
 export default function RegisterForm() {
     const searchParams = useSearchParams();
