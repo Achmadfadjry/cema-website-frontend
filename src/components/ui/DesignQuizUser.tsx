@@ -14,6 +14,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { signIn } from "next-auth/react";
+import { register, AuthServiceError } from "@/lib/services/auth.service";
+import { login } from "@/lib/services/auth.service";
 
 // --- KONFIGURASI API ---
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -65,7 +68,7 @@ export default function DesignQuizUser() {
   // --- STATE ---
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<"intro" | "quiz" | "result" | "auth">(
-    "intro"
+    "intro",
   );
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -76,6 +79,17 @@ export default function DesignQuizUser() {
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [winnerStyle, setWinnerStyle] = useState<DesignStyle | null>(null);
+
+  // --- AUTH FORM STATE ---
+  const [authMode, setAuthMode] = useState<"register" | "login">("register");
+  const [authForm, setAuthForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState<string | null>(null);
 
   // --- LOAD DATA DARI BACKEND API ---
   useEffect(() => {
@@ -175,6 +189,58 @@ export default function DesignQuizUser() {
 
     setWinnerStyle(winner);
     setStep("result");
+  };
+
+  // --- AUTH HANDLER ---
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthSuccess(null);
+    setAuthLoading(true);
+
+    try {
+      if (authMode === "register") {
+        // 1. Register the new account
+        await register({
+          name: authForm.name,
+          email: authForm.email,
+          password: authForm.password,
+          role: "client",
+        });
+      }
+
+      // 2. Auto-login via NextAuth (same as login page)
+      const result = await signIn("credentials", {
+        email: authForm.email,
+        password: authForm.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setAuthError(
+          authMode === "register"
+            ? "Akun berhasil dibuat, tapi login gagal. Silakan login manual."
+            : "Email atau password salah.",
+        );
+      } else if (result?.ok) {
+        setAuthSuccess(
+          authMode === "register"
+            ? "Akun dibuat & login berhasil! Mengalihkan ke dashboard..."
+            : "Login berhasil! Mengalihkan ke dashboard...",
+        );
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1500);
+      }
+    } catch (err) {
+      if (err instanceof AuthServiceError) {
+        setAuthError(err.message);
+      } else {
+        setAuthError("Terjadi kesalahan. Silakan coba lagi.");
+      }
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   // --- RENDER COMPONENT ---
@@ -333,12 +399,20 @@ export default function DesignQuizUser() {
                 {/* Kiri: Info */}
                 <div className="hidden md:flex w-1/2 bg-[#8cc55a] text-white p-10 flex-col justify-center">
                   <h3 className="text-3xl font-bold mb-4">
-                    Satu Langkah Lagi!
+                    {authMode === "register"
+                      ? "Satu Langkah Lagi!"
+                      : "Selamat Datang Kembali!"}
                   </h3>
                   <p className="opacity-90 mb-8">
-                    Buat akun untuk menyimpan hasil kuis gaya{" "}
-                    <strong>{winnerStyle?.name}</strong> Anda. Ini akan sangat
-                    membantu tim desainer kami.
+                    {authMode === "register" ? (
+                      <>
+                        Buat akun untuk menyimpan hasil kuis gaya{" "}
+                        <strong>{winnerStyle?.name}</strong> Anda. Ini akan
+                        sangat membantu tim desainer kami.
+                      </>
+                    ) : (
+                      "Masuk ke akun Anda untuk menyimpan hasil kuis."
+                    )}
                   </p>
                   <div className="space-y-4 text-sm opacity-80">
                     <div className="flex items-center gap-2">
@@ -356,33 +430,49 @@ export default function DesignQuizUser() {
                 {/* Kanan: Form */}
                 <div className="w-full md:w-1/2 p-10 flex flex-col justify-center bg-white">
                   <h3 className="text-2xl font-bold text-gray-800 mb-6">
-                    Daftar Akun Baru
+                    {authMode === "register"
+                      ? "Daftar Akun Baru"
+                      : "Masuk ke Akun"}
                   </h3>
 
-                  <form
-                    className="space-y-4"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      alert("Proses Register/Login Backend dijalankan disini!");
-                      setIsOpen(false);
-                    }}
-                  >
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                        Nama Lengkap
-                      </label>
-                      <div className="relative">
-                        <User
-                          className="absolute left-3 top-3 text-gray-400"
-                          size={18}
-                        />
-                        <input
-                          type="text"
-                          className="w-full border border-gray-300 pl-10 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                          placeholder="John Doe"
-                        />
-                      </div>
+                  {/* Error / Success banners */}
+                  {authError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                      {authError}
                     </div>
+                  )}
+                  {authSuccess && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+                      {authSuccess}
+                    </div>
+                  )}
+
+                  <form className="space-y-4" onSubmit={handleAuthSubmit}>
+                    {/* Nama hanya untuk Register */}
+                    {authMode === "register" && (
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                          Nama Lengkap
+                        </label>
+                        <div className="relative">
+                          <User
+                            className="absolute left-3 top-3 text-gray-400"
+                            size={18}
+                          />
+                          <input
+                            type="text"
+                            required
+                            value={authForm.name}
+                            onChange={(e) =>
+                              setAuthForm({ ...authForm, name: e.target.value })
+                            }
+                            className="w-full border border-gray-300 pl-10 p-3 rounded-lg focus:ring-2 focus:ring-[#8cc55a] outline-none"
+                            placeholder="John Doe"
+                            disabled={authLoading}
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
@@ -395,8 +485,14 @@ export default function DesignQuizUser() {
                         />
                         <input
                           type="email"
-                          className="w-full border border-gray-300 pl-10 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                          required
+                          value={authForm.email}
+                          onChange={(e) =>
+                            setAuthForm({ ...authForm, email: e.target.value })
+                          }
+                          className="w-full border border-gray-300 pl-10 p-3 rounded-lg focus:ring-2 focus:ring-[#8cc55a] outline-none"
                           placeholder="email@contoh.com"
+                          disabled={authLoading}
                         />
                       </div>
                     </div>
@@ -412,28 +508,58 @@ export default function DesignQuizUser() {
                         />
                         <input
                           type="password"
-                          className="w-full border border-gray-300 pl-10 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                          required
+                          value={authForm.password}
+                          onChange={(e) =>
+                            setAuthForm({
+                              ...authForm,
+                              password: e.target.value,
+                            })
+                          }
+                          className="w-full border border-gray-300 pl-10 p-3 rounded-lg focus:ring-2 focus:ring-[#8cc55a] outline-none"
                           placeholder="••••••••"
+                          disabled={authLoading}
                         />
                       </div>
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full bg-[#8cc55a] text-white py-3 rounded-lg font-bold hover:bg-[#588C1C] transition-colors mt-4"
+                      disabled={authLoading}
+                      className="w-full bg-[#8cc55a] text-white py-3 rounded-lg font-bold hover:bg-[#588C1C] transition-colors mt-4 flex items-center justify-center gap-2 disabled:opacity-70"
                     >
-                      Daftar & Simpan Hasil
+                      {authLoading ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />{" "}
+                          Memproses...
+                        </>
+                      ) : authMode === "register" ? (
+                        "Daftar & Simpan Hasil"
+                      ) : (
+                        "Login & Simpan Hasil"
+                      )}
                     </button>
                   </form>
 
                   <p className="text-center text-sm text-gray-500 mt-6">
-                    Sudah punya akun?{" "}
-                    <a
-                      href="/login"
+                    {authMode === "register"
+                      ? "Sudah punya akun?"
+                      : "Belum punya akun?"}{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode(
+                          authMode === "register" ? "login" : "register",
+                        );
+                        setAuthError(null);
+                        setAuthSuccess(null);
+                      }}
                       className="text-[#8cc55a] font-bold hover:underline"
                     >
-                      Login disini
-                    </a>
+                      {authMode === "register"
+                        ? "Login disini"
+                        : "Daftar disini"}
+                    </button>
                   </p>
                 </div>
               </div>

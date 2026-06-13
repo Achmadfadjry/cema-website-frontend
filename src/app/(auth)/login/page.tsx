@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
-// Import firebase untuk Opsi 2
 import { auth, googleProvider } from "../../../lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 import "./login.css";
@@ -32,8 +31,11 @@ export default function LoginPage() {
   const closePopup = () => {
     setPopup({ ...popup, show: false });
     if (popup.type === "success") {
-      // Gunakan window.location agar Middleware tidak mencegat
-      window.location.href = callbackUrl;
+      // Replace browser history to prevent going back to login
+      setTimeout(() => {
+        window.history.replaceState({}, "", callbackUrl);
+        window.location.href = callbackUrl;
+      }, 500);
     }
   };
 
@@ -83,6 +85,8 @@ export default function LoginPage() {
       });
 
       if (res?.error) throw new Error(res.error);
+      // Replace browser history to prevent going back to login
+      window.history.replaceState({}, "", callbackUrl);
       window.location.href = callbackUrl;
     } catch (error: any) {
       setPopup({ show: true, message: "Gagal Login Google", type: "error" });
@@ -116,7 +120,7 @@ export default function LoginPage() {
         </div>
         <div className="left-content">
           <h2 className="h-content">Welcome Back!</h2>
-          <p className="p-content">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+          <p className="p-content">Transforming ordinary spaces into extraordinary places</p>
         </div>
       </div>
 

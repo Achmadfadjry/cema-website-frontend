@@ -1,10 +1,20 @@
 
-* {
+.login-container,
+.login-container * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     color: #333;
     font-family: "Poppins", sans-serif;
+}
+
+.h-content {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.p-content {
+  font-size: 20px;
 }
 
 .login-container {

@@ -112,7 +112,7 @@ export default function RegisterPage() {
         </div>
         <div className="left-content">
           <h2 className="h-content">Join Us!</h2>
-          <p className="p-content">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+          <p className="p-content">Start your design journey today</p>
         </div>
       </div>
 
