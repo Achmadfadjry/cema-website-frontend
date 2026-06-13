@@ -11,10 +11,17 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const isAdminPage = pathname?.startsWith("/dashboard/admin");
 
-    // Reset scroll and prevent layout shifts
+    // Reset scroll, overflow, and ensure layout consistency
     useEffect(() => {
-        window.scrollTo(0, 0);
+        // Reset to auto state
         document.body.style.overflow = "auto";
+        document.documentElement.style.overflow = "auto";
+        
+        // Reset scroll position
+        window.scrollTo(0, 0);
+        
+        // Remove any fixed/sticky issues
+        document.body.style.position = "static";
     }, [pathname]);
 
     return (

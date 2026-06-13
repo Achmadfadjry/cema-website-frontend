@@ -1,27 +1,25 @@
 
-.login-container,
-.login-container * {
+.login-container {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     color: #333;
     font-family: "Poppins", sans-serif;
+    width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: row;
 }
 
 .h-content {
   font-size: 32px;
   font-weight: bold;
+  margin: 0;
 }
 
 .p-content {
   font-size: 20px;
-}
-
-.login-container {
-  width: 100%;
-  min-height: 100dvh;
-    display: flex;
-    flex-direction: row;
+  margin: 0;
 }
 
 .left-container {
