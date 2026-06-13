@@ -38,7 +38,7 @@ export async function createBookingFromForm(
 
   try {
     // Call Next.js API route (BFF pattern)
-    const response = await fetch("/api/booking", {
+    const response = await fetch("/api/schedules", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

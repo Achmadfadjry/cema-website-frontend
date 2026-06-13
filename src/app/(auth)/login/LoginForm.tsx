@@ -30,8 +30,11 @@ export default function LoginForm() {
     const closePopup = () => {
         setPopup({ ...popup, show: false });
         if (popup.type === "success") {
-            // Gunakan window.location agar Middleware tidak mencegat
-            window.location.href = callbackUrl;
+            // Replace browser history to prevent going back to login
+            setTimeout(() => {
+                window.history.replaceState({}, "", callbackUrl);
+                window.location.href = callbackUrl;
+            }, 500);
         }
     };
 
@@ -54,6 +57,8 @@ export default function LoginForm() {
                     type: "error",
                 });
             } else if (result?.ok) {
+                // Replace history immediately to prevent back button issues
+                window.history.replaceState({}, "", callbackUrl);
                 setPopup({
                     show: true,
                     message: "Login Berhasil! Selamat datang.",
@@ -81,6 +86,7 @@ export default function LoginForm() {
             });
 
             if (res?.error) throw new Error(res.error);
+            window.history.replaceState({}, "", callbackUrl);
             window.location.href = callbackUrl;
         } catch (error: any) {
             setPopup({ show: true, message: "Gagal Login Google", type: "error" });
