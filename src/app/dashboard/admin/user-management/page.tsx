@@ -29,11 +29,21 @@ interface User {
   createdAt: string;
 }
 
+const getRoleStyles = (role: Role) => {
+  switch (role) {
+    case "admin":
+      return "bg-green-55 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/30";
+    case "project_manager":
+      return "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-405 border-blue-200 dark:border-blue-900/30";
+    case "staff":
+      return "bg-amber-50 dark:bg-amber-950/20 text-amber-705 dark:text-amber-400 border-amber-200 dark:border-amber-900/30";
+    default:
+      return "bg-slate-50 dark:bg-zinc-800 text-slate-1000 dark:text-zinc-400 border-slate-200 dark:border-zinc-700";
+  }
+};
+
 export default function UserManagementPage() {
-  // Session NextAuth biasanya menyimpan token di data.user.accessToken atau data.accessToken
-  // tergantung konfigurasi callbacks di route.ts auth kamu
   const { data: session, status } = useSession();
-  const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/users`;
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +54,7 @@ export default function UserManagementPage() {
     msg: string;
     type: "success" | "error";
   } | null>(null);
+  
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     userId: string | null;
@@ -129,32 +140,35 @@ export default function UserManagementPage() {
 
   if (status === "loading" || (loading && users.length === 0)) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // --- JSX / Design tetap sama persis ---
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-slate-900 antialiased font-sans">
+    <div className="space-y-6 animate-in fade-in duration-300 relative">
+      {/* Toast alert */}
       {toast && (
-        <div className="fixed bottom-5 right-5 z-[9999] animate-in slide-in-from-right fade-in duration-300">
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-right duration-350">
           <div
-            className={`flex items-center gap-3 px-5 py-3 rounded-lg shadow-2xl border ${toast.type === "success"
-                ? "bg-white border-green-200"
-                : "bg-white border-red-200"
-              }`}
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-xs font-bold transition-all bg-white dark:bg-zinc-900 ${
+              toast.type === "success"
+                ? "border-green-200 dark:border-green-900/30 text-green-800 dark:text-green-400"
+                : "border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-400"
+            }`}
           >
             {toast.type === "success" ? (
-              <CheckCircle className="text-green-500" size={20} />
+              <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
             ) : (
-              <AlertCircle className="text-red-500" size={20} />
+              <AlertCircle size={18} className="text-red-600 dark:text-red-400" />
             )}
-            <p className="text-sm font-bold text-slate-800">{toast.msg}</p>
+            <div>
+              <p className="leading-tight">{toast.msg}</p>
+            </div>
             <button
               onClick={() => setToast(null)}
-              className="ml-2 text-gray-400 hover:text-gray-600"
+              className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -162,31 +176,29 @@ export default function UserManagementPage() {
         </div>
       )}
 
+      {/* Confirm modal delete */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center text-center">
-              <div className="bg-red-100 p-3 rounded-full mb-4">
-                <AlertTriangle className="text-red-600" size={28} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">
-                Hapus Pengguna?
-              </h3>
-              <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                Tindakan ini tidak dapat dibatalkan. Data user akan dihapus
-                permanen dari sistem.
-              </p>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 text-center transition-colors duration-300">
+            <div className="w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-900/30">
+              <AlertTriangle className="h-6 w-6 text-red-650" />
             </div>
-            <div className="flex gap-3 mt-6">
+            <h3 className="text-base font-black text-slate-800 dark:text-zinc-100 tracking-tight">
+              Hapus Pengguna?
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2 mb-6 leading-relaxed">
+              Tindakan ini tidak dapat dibatalkan. Data user akan dihapus permanen dari sistem.
+            </p>
+            <div className="flex gap-2.5">
               <button
                 onClick={() => setConfirmModal({ isOpen: false, userId: null })}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 text-slate-700 transition-colors"
+                className="flex-1 py-2.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 rounded-xl hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-bold transition-all cursor-pointer"
               >
                 Batal
               </button>
               <button
                 onClick={executeDelete}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors shadow-sm"
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-red-600/20 cursor-pointer"
               >
                 Ya, Hapus
               </button>
@@ -195,130 +207,117 @@ export default function UserManagementPage() {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm gap-4 transition-colors duration-300">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 text-primary p-2.5 rounded-xl">
+            <UserCog size={22} />
+          </div>
           <div>
-            <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
-              <UserCog className="text-blue-600" size={32} /> User Management
-            </h1>
-            <p className="text-slate-500 text-sm mt-1">
-              Kelola hak akses dan informasi tim Cema Design.
+            <h3 className="font-black text-lg text-slate-800 dark:text-zinc-100 tracking-tight">
+              User Management
+            </h3>
+            <p className="text-xs text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+              Kelola Hak Akses dan Informasi Tim Cema Design
             </p>
           </div>
+        </div>
+        
+        <div className="relative w-full sm:w-auto">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 h-4 w-4" />
+          <input
+            type="text"
+            className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-medium placeholder-slate-400 dark:placeholder-zinc-500"
+            placeholder="Cari nama atau email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
 
-          <div className="relative w-full md:w-auto">
-            <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cari nama atau email..."
-              className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-full md:w-80 bg-white shadow-sm transition-all"
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </header>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-gray-200">
-                  <th className="p-5 font-bold text-slate-500 text-xs uppercase tracking-widest">
-                    User Profile
-                  </th>
-                  <th className="p-5 font-bold text-slate-500 text-xs uppercase tracking-widest">
-                    Role Access
-                  </th>
-                  <th className="p-5 font-bold text-slate-500 text-xs uppercase tracking-widest">
-                    Registration
-                  </th>
-                  <th className="p-5 font-bold text-slate-500 text-xs uppercase tracking-widest text-center">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredUsers.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-blue-50/20 transition-colors group"
-                  >
-                    <td className="p-5">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-inner overflow-hidden border-2 border-white ring-1 ring-gray-100">
-                            {user.profilePicture ? (
-                              <img
-                                src={user.profilePicture}
-                                alt=""
-                                className="object-cover w-full h-full"
-                              />
-                            ) : (
-                              (user.name?.[0] || user.email[0]).toUpperCase()
-                            )}
-                          </div>
+      {/* Users Table */}
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm overflow-hidden transition-colors duration-300">
+        <div className="overflow-x-auto scrollbar-thin">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead className="bg-slate-50 dark:bg-zinc-900/50 text-slate-400 dark:text-zinc-500 border-b border-slate-100 dark:border-zinc-800 text-xs font-bold uppercase tracking-wider">
+              <tr>
+                <th className="px-6 py-4">User Profile</th>
+                <th className="px-6 py-4">Role Access</th>
+                <th className="px-6 py-4">Registration</th>
+                <th className="px-6 py-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+              {filteredUsers.map((user) => (
+                <tr
+                  key={user._id}
+                  className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/25 flex items-center justify-center text-primary font-black text-sm overflow-hidden shrink-0">
+                        {user.profilePicture ? (
+                          <img
+                            src={user.profilePicture}
+                            alt=""
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          (user.name?.[0] || user.email[0]).toUpperCase()
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-zinc-200">
+                          {user.name || "User"}
                         </div>
-                        <div>
-                          <p className="font-bold text-slate-900 text-base">
-                            {user.name || "User"}
-                          </p>
-                          <p className="text-xs font-medium text-slate-400">
-                            {user.email}
-                          </p>
+                        <div className="text-xs text-slate-400 dark:text-zinc-500 mt-0.5">
+                          {user.email}
                         </div>
                       </div>
-                    </td>
-                    <td className="p-5">
-                      <select
-                        value={user.role}
-                        disabled={updatingId === user._id}
-                        onChange={(e) =>
-                          handleUpdateRole(user._id, e.target.value as Role)
-                        }
-                        className={`text-sm font-bold rounded-lg px-3 py-2 border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm ${updatingId === user._id
-                            ? "opacity-40 cursor-not-allowed"
-                            : "cursor-pointer hover:border-blue-300"
-                          }`}
-                      >
-                        <option value="admin">ADMIN</option>
-                        <option value="project_manager">PM</option>
-                        <option value="staff">STAFF</option>
-                        <option value="client">CLIENT</option>
-                      </select>
-                    </td>
-                    <td className="p-5">
-                      <span className="text-sm font-semibold text-slate-600 bg-gray-100 px-3 py-1 rounded-full">
-                        {new Date(user.createdAt).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </td>
-                    <td className="p-5 text-center">
-                      <button
-                        onClick={() =>
-                          setConfirmModal({ isOpen: true, userId: user._id })
-                        }
-                        className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
-                        title="Delete User"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={user.role}
+                      disabled={updatingId === user._id}
+                      onChange={(e) =>
+                        handleUpdateRole(user._id, e.target.value as Role)
+                      }
+                      className={`p-2 border rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-[10px] font-black tracking-wider uppercase cursor-pointer transition-all disabled:opacity-50 min-w-[130px] ${getRoleStyles(user.role)}`}
+                    >
+                      <option value="admin" className="text-slate-805 dark:text-zinc-200 bg-white dark:bg-zinc-900 font-bold">ADMIN</option>
+                      <option value="project_manager" className="text-slate-805 dark:text-zinc-200 bg-white dark:bg-zinc-900 font-bold">PM</option>
+                      <option value="staff" className="text-slate-805 dark:text-zinc-200 bg-white dark:bg-zinc-900 font-bold">STAFF</option>
+                      <option value="client" className="text-slate-805 dark:text-zinc-200 bg-white dark:bg-zinc-900 font-bold">CLIENT</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl">
+                      {new Date(user.createdAt).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <button
+                      onClick={() =>
+                        setConfirmModal({ isOpen: true, userId: user._id })
+                      }
+                      className="p-2 text-red-400 hover:text-red-655 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all active:scale-95 cursor-pointer"
+                      title="Delete User"
+                    >
+                      <Trash2 className="w-4.5 h-4.5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           {filteredUsers.length === 0 && (
-            <div className="p-20 text-center bg-gray-50/50">
-              <div className="inline-block p-4 rounded-full bg-gray-100 mb-4">
-                <Search className="text-gray-300" size={32} />
-              </div>
-              <p className="text-slate-400 font-medium italic">
-                Tidak ada user yang ditemukan.
-              </p>
+            <div className="text-center py-12 text-slate-400 dark:text-zinc-500 text-sm italic">
+              Tidak ada pengguna yang ditemukan.
             </div>
           )}
         </div>

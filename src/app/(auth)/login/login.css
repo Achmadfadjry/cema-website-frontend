@@ -3,7 +3,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    color: #333;
     font-family: "Poppins", sans-serif;
 }
 
@@ -12,6 +11,18 @@
   min-height: 100dvh;
     display: flex;
     flex-direction: row;
+    color: #333;
+}
+
+.login-container input,
+.login-container button,
+.login-container select,
+.login-container textarea,
+.login-container a,
+.login-container h1,
+.login-container h2,
+.login-container p {
+    color: #333;
 }
 
 .left-container {

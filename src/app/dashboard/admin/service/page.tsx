@@ -12,6 +12,8 @@ import {
   CheckCircle,
   AlertCircle,
   Pencil,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import {
   fetchServicesAction,
@@ -79,11 +81,8 @@ export default function ServicesPage() {
     features: [],
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
   // --- FETCH DATA ---
   const fetchServices = async () => {
-    // Only fetch if session is loaded (even if unauthenticated, middleware might redirect, but safe to check)
     if (status === "loading") return;
 
     setIsLoading(true);
@@ -109,7 +108,7 @@ export default function ServicesPage() {
     if (!file) return;
 
     if (file.size > 1 * 1024 * 1024) {
-      console.error("File terlalu besar (Max 1MB)");
+      showToast("File terlalu besar (Max 1MB)", "error");
       return;
     }
 
@@ -122,7 +121,10 @@ export default function ServicesPage() {
 
   // --- HANDLER SAVE (CREATE & UPDATE) ---
   const handleSave = async () => {
-    if (!formData.title || !formData.category) return;
+    if (!formData.title || !formData.category) {
+      showToast("Nama layanan dan kategori wajib diisi!", "error");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -131,8 +133,8 @@ export default function ServicesPage() {
         category: formData.category,
         price: String(formData.price),
         description: formData.description || "-",
-        image: formData.image,
-        isShown: formData.isShown,
+        image: formData.image || "",
+        isShown: formData.isShown ?? true,
         isPopular: false,
         features: formData.features || [],
       };
@@ -166,18 +168,16 @@ export default function ServicesPage() {
           "success"
         );
       } else {
-        console.error("Gagal simpan:", result.message);
         showToast(`Gagal menyimpan: ${result.message}`, "error");
       }
     } catch (error: any) {
-      console.error("Error saving:", error);
       showToast("Gagal menyimpan data ke server", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- LOGIC HAPUS (FIXED) ---
+  // --- LOGIC HAPUS ---
   const openDeleteModal = (id: string) => {
     setServiceToDelete(id);
     setIsDeleteModalOpen(true);
@@ -199,7 +199,6 @@ export default function ServicesPage() {
   };
 
   const confirmDelete = async () => {
-    // 1. Cek ID
     if (!serviceToDelete) return;
 
     setIsLoading(true);
@@ -207,37 +206,27 @@ export default function ServicesPage() {
       const result = await deleteServiceAction(serviceToDelete);
 
       if (result.success) {
-        // Update Tampilan (Hapus baris dari tabel)
         setServices((prev) => prev.filter((s) => s.id !== serviceToDelete));
-
-        // Tutup Modal
         setIsDeleteModalOpen(false);
         setServiceToDelete(null);
+        showToast("Layanan berhasil dihapus!", "success");
       } else {
-        console.error("Gagal hapus:", result.message);
         showToast("Gagal menghapus: " + result.message, "error");
       }
     } catch (error) {
-      console.error("Error connection deleting:", error);
       showToast("Terjadi kesalahan koneksi", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- LOGIC TOGGLE STATUS (NEW) ---
-  // --- LOGIC TOGGLE STATUS (NEW) ---
+  // --- LOGIC TOGGLE STATUS ---
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
     try {
-      // Optimistic Update
       setServices((prev) =>
         prev.map((s) => (s.id === id ? { ...s, isShown: !currentStatus } : s))
       );
 
-      // Kami berasumsi endpoint PUT /services/:id bisa menerima parsial update
-      // Sesuaikan body dengan kebutuhan backend
-      // Disini kita kirim payload lengkap atau partial tergantung API
-      // Untuk aman, kita ambil data service yang ada
       const service = services.find((s) => s.id === id);
       if (!service) return;
 
@@ -249,15 +238,14 @@ export default function ServicesPage() {
       const result = await updateServiceAction(id, payload);
 
       if (!result.success) {
-        // Revert changes if failed
         setServices((prev) =>
           prev.map((s) => (s.id === id ? { ...s, isShown: currentStatus } : s))
         );
         showToast(`Gagal update status: ${result.message}`, "error");
+      } else {
+        showToast("Status publikasi layanan berhasil diubah!", "success");
       }
     } catch (error) {
-      console.error("Error toggle status:", error);
-      // Revert
       setServices((prev) =>
         prev.map((s) => (s.id === id ? { ...s, isShown: currentStatus } : s))
       );
@@ -265,18 +253,35 @@ export default function ServicesPage() {
     }
   };
 
-  if (status === "loading")
+  if (status === "loading") {
     return (
-      <div className="p-10 text-center text-gray-800">Loading session...</div>
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
-  if (status === "unauthenticated")
-    return <div className="p-10 text-center text-red-500">Akses Ditolak.</div>;
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="p-10 text-center text-red-500 font-bold">
+        Akses Ditolak. Silakan Login Ulang.
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300 relative">
+      
       {/* Header */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-        <h3 className="font-bold text-lg text-gray-900">Manajemen Layanan</h3>
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm gap-4 transition-colors duration-300">
+        <div>
+          <h3 className="font-black text-lg text-slate-800 dark:text-zinc-100 tracking-tight">
+            Manajemen Layanan
+          </h3>
+          <p className="text-xs text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+            Daftar Jasa Desain & Estimasi Harga Per Meter
+          </p>
+        </div>
         <button
           onClick={() => {
             setIsEditMode(false);
@@ -291,42 +296,41 @@ export default function ServicesPage() {
             });
             setIsFormModalOpen(true);
           }}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium"
+          className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-primary/20 hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto"
         >
           <Plus size={16} /> Tambah Data
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-900 uppercase bg-gray-100 border-b font-bold">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm overflow-hidden transition-colors duration-300">
+        <div className="overflow-x-auto scrollbar-thin">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead className="bg-slate-50 dark:bg-zinc-900/50 text-slate-400 dark:text-zinc-500 border-b border-slate-100 dark:border-zinc-800 text-xs font-bold uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-3">Layanan</th>
-                <th className="px-6 py-3">Kategori</th>
-                <th className="px-6 py-3">Harga</th>
-                <th className="px-6 py-3 text-center">Status</th>
-                <th className="px-6 py-3 text-center">Aksi</th>
+                <th className="px-6 py-4">Layanan</th>
+                <th className="px-6 py-4">Kategori</th>
+                <th className="px-6 py-4">Harga</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
               {services.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-500">
-                    Data kosong.
+                  <td colSpan={5} className="text-center py-12 text-slate-400 dark:text-zinc-500 text-sm italic">
+                    Belum ada data layanan yang tersimpan.
                   </td>
                 </tr>
               ) : (
                 services.map((service) => (
                   <tr
                     key={service._id}
-                    className="bg-white hover:bg-gray-50 transition-colors"
+                    className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors"
                   >
-                    {/* KOLOM 1: Layanan */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-200 rounded border overflow-hidden flex-shrink-0">
+                        <div className="w-10 h-10 bg-slate-100 dark:bg-zinc-950 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 flex-shrink-0 flex items-center justify-center">
                           {service.image ? (
                             <img
                               src={service.image}
@@ -334,65 +338,63 @@ export default function ServicesPage() {
                               alt=""
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <UploadCloud size={16} />
-                            </div>
+                            <UploadCloud className="text-slate-400 dark:text-zinc-650" size={16} />
                           )}
                         </div>
                         <div>
-                          {/* FIX TEXT COLOR: text-gray-900 */}
-                          <div className="font-bold text-gray-900 text-base">
+                          <div className="font-bold text-slate-800 dark:text-zinc-200 text-base">
                             {service.title}
                           </div>
-                          <div className="text-sm text-gray-600 truncate max-w-[150px]">
+                          <div className="text-xs text-slate-400 dark:text-zinc-500 truncate max-w-[200px] mt-0.5 leading-relaxed">
                             {service.description}
                           </div>
                         </div>
                       </div>
                     </td>
 
-                    {/* KOLOM 2: Kategori */}
-                    <td className="px-6 py-4 text-gray-900 font-medium">
+                    <td className="px-6 py-4 font-bold text-slate-600 dark:text-zinc-300 text-xs uppercase tracking-wider">
                       {service.category}
                     </td>
 
-                    {/* KOLOM 3: Harga */}
-                    <td className="px-6 py-4 text-gray-900 font-medium">
-                      Rp {Number(service.price).toLocaleString("id-ID")}
+                    <td className="px-6 py-4 font-black text-slate-800 dark:text-zinc-200">
+                      Rp {Number(service.price).toLocaleString("id-ID")}/m²
                     </td>
 
-                    {/* KOLOM 4: Status */}
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() =>
-                          handleToggleStatus(service.id, service.isShown)
-                        }
-                        className={`inline-block px-3 py-1 rounded text-xs font-bold transition-all ${
-                          service.isShown
-                            ? "bg-green-100 text-green-700 border border-green-200 hover:bg-green-200"
-                            : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
-                        }`}
-                      >
-                        {service.isShown ? "Aktif" : "Nonaktif"}
-                      </button>
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => handleToggleStatus(service.id, service.isShown)}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/20 ${
+                            service.isShown ? "bg-primary" : "bg-slate-200 dark:bg-zinc-805"
+                          }`}
+                          title={service.isShown ? "Matikan Layanan" : "Aktifkan Layanan"}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                              service.isShown ? "translate-x-5" : "translate-x-0"
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </td>
 
-                    {/* KOLOM 5: Aksi */}
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => openEditModal(service)}
-                        className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors mr-1"
-                        title="Ubah"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(service.id)}
-                        className="text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors"
-                        title="Hapus"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          onClick={() => openEditModal(service)}
+                          className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-xl transition-all active:scale-95 cursor-pointer"
+                          title="Ubah"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(service.id)}
+                          className="p-2 text-red-400 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all active:scale-95 cursor-pointer"
+                          title="Hapus"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -404,33 +406,59 @@ export default function ServicesPage() {
 
       {/* MODAL FORM */}
       {isFormModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="p-5 border-b flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-900">
-                {isEditMode ? "Edit Layanan" : "Tambah Layanan"}
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 transition-colors duration-300">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-zinc-800 pb-3 mb-5">
+              <h3 className="text-lg font-black text-slate-800 dark:text-zinc-100 tracking-tight">
+                {isEditMode ? "Ubah Layanan" : "Tambah Layanan Baru"}
               </h3>
-              <button onClick={() => setIsFormModalOpen(false)}>
-                <X size={20} className="text-gray-500 hover:text-gray-700" />
+              <button
+                onClick={() => setIsFormModalOpen(false)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="space-y-4 text-xs font-bold">
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">
-                  Gambar
+                <label className="block text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Gambar Layanan
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700"
-                />
+                <div className="relative group mb-3">
+                  <input
+                    type="file"
+                    id="service-image-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                  <label
+                    htmlFor="service-image-upload"
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-slate-205 dark:border-zinc-800 rounded-xl p-4.5 bg-slate-50 dark:bg-zinc-950/40 hover:bg-slate-100/50 dark:hover:bg-zinc-900/40 hover:border-primary dark:hover:border-primary transition-all cursor-pointer text-center duration-200"
+                  >
+                    <UploadCloud size={24} className="text-slate-400 dark:text-zinc-500 mb-1.5 group-hover:text-primary transition-colors" />
+                    <span className="text-[10.5px] text-slate-1000 dark:text-zinc-400 font-bold group-hover:text-primary">
+                      Klik untuk upload foto layanan
+                    </span>
+                  </label>
+                </div>
+                {formData.image && (
+                  <div className="relative w-full h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-sm transition-all duration-300">
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity duration-200 pointer-events-none">
+                      <span className="text-white text-[10px] font-black uppercase tracking-wider bg-black/40 px-2.5 py-1 rounded-lg">Preview Aktif</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* INPUT FIELDS dengan Text-Gray-900 agar tidak ghosting */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">
+                <label className="block text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Nama Layanan
                 </label>
                 <input
@@ -439,12 +467,13 @@ export default function ServicesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full border p-2 rounded text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-medium"
                   placeholder="Contoh: Desain Interior"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">
+                <label className="block text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Kategori
                 </label>
                 <input
@@ -453,12 +482,13 @@ export default function ServicesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full border p-2 rounded text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="Contoh: Design"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-medium"
+                  placeholder="Contoh: Design / Construction"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">
+                <label className="block text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Harga
                 </label>
                 <input
@@ -467,12 +497,13 @@ export default function ServicesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, price: e.target.value })
                   }
-                  className="w-full border p-2 rounded text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-medium"
                   placeholder="0"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">
+                <label className="block text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Deskripsi
                 </label>
                 <textarea
@@ -480,26 +511,26 @@ export default function ServicesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full border p-2 rounded text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-medium h-24"
                   placeholder="Deskripsi singkat..."
-                  rows={3}
-                ></textarea>
+                />
               </div>
             </div>
 
-            <div className="p-5 border-t bg-gray-50 flex justify-end gap-3">
+            <div className="flex justify-end gap-2 mt-8 pt-4 border-t border-slate-100 dark:border-zinc-800">
               <button
                 onClick={() => setIsFormModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-white"
+                className="px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors cursor-pointer"
               >
                 Batal
               </button>
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-all shadow-md shadow-primary/20 disabled:bg-primary/50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
               >
-                {isLoading ? "Menyimpan..." : "Simpan"}
+                {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Simpan
               </button>
             </div>
           </div>
@@ -508,37 +539,31 @@ export default function ServicesPage() {
 
       {/* MODAL KONFIRMASI HAPUS */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 text-center transition-colors duration-300">
+            <div className="w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-900/30">
+              <AlertTriangle className="h-6 w-6 text-red-650" />
             </div>
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-gray-900">
-                Hapus Layanan Ini?
-              </h3>
-              <p className="mt-2 text-sm text-gray-600">
-                Apakah Anda yakin? Data yang dihapus tidak bisa dikembalikan.
-              </p>
-            </div>
-            <div className="mt-6 flex justify-center gap-3">
+            <h3 className="text-base font-black text-slate-800 dark:text-zinc-100 tracking-tight">
+              Hapus Layanan ini?
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2 mb-6 leading-relaxed">
+              Apakah Anda yakin? Data yang dihapus tidak bisa dikembalikan.
+            </p>
+            <div className="flex gap-2.5">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="flex-1 py-2.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 rounded-xl hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-bold transition-all cursor-pointer"
                 disabled={isLoading}
               >
                 Batal
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center gap-2"
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-red-600/20 cursor-pointer"
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  <Loader2 className="animate-spin w-4 h-4" />
-                ) : (
-                  "Ya, Hapus"
-                )}
+                Ya, Hapus
               </button>
             </div>
           </div>
@@ -547,32 +572,29 @@ export default function ServicesPage() {
 
       {/* TOAST NOTIFICATION */}
       {notification.show && (
-        <div
-          className={`fixed bottom-10 right-10 px-6 py-4 rounded-lg shadow-xl border flex items-center gap-3 animate-in slide-in-from-right duration-300 z-[100] ${
-            notification.type === "success"
-              ? "bg-green-50 border-green-200 text-green-800"
-              : "bg-red-50 border-red-200 text-red-800"
-          }`}
-        >
-          {notification.type === "success" ? (
-            <CheckCircle size={24} className="text-green-600" />
-          ) : (
-            <AlertCircle size={24} className="text-red-600" />
-          )}
-          <div>
-            <h4 className="font-bold text-sm">
-              {notification.type === "success" ? "Berhasil" : "Gagal"}
-            </h4>
-            <p className="text-sm">{notification.message}</p>
-          </div>
-          <button
-            onClick={() =>
-              setNotification((prev) => ({ ...prev, show: false }))
-            }
-            className="ml-4 text-gray-400 hover:text-gray-600"
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-right duration-350">
+          <div
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-xs font-bold transition-all ${
+              notification.type === "success"
+                ? "bg-green-50 dark:bg-green-950/25 border-green-200 dark:border-green-900/30 text-green-800 dark:text-green-400"
+                : "bg-red-50 dark:bg-red-950/25 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-400"
+            }`}
           >
-            <X size={18} />
-          </button>
+            {notification.type === "success" ? (
+              <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
+            ) : (
+              <AlertCircle size={18} className="text-red-600 dark:text-red-400" />
+            )}
+            <div>
+              <p className="leading-tight">{notification.message}</p>
+            </div>
+            <button
+              onClick={() => setNotification((prev) => ({ ...prev, show: false }))}
+              className="ml-2 text-slate-400 hover:text-slate-655 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
       )}
     </div>
