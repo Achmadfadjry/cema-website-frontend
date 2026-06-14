@@ -1,21 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter untuk navigasi
+import { useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
   Briefcase,
   CheckCircle2,
   Clock,
   Wallet,
-  ArrowUpRight,
   MoreHorizontal,
   X,
   BookOpen,
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-// Import action BFF kamu
 import { fetchDashboardOverviewAction } from "@/app/actions/overview";
 
 // --- Helper Functions ---
@@ -30,13 +27,13 @@ const formatCurrency = (value: number) => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case "completed":
-      return "bg-green-100 text-green-700 border-green-200";
+      return "bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/30";
     case "in-progress":
-      return "bg-blue-100 text-blue-700 border-blue-200";
+      return "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900/30";
     case "pending":
-      return "bg-orange-100 text-orange-700 border-orange-200";
+      return "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30";
     default:
-      return "bg-gray-100 text-gray-700 border-gray-200";
+      return "bg-slate-50 dark:bg-zinc-800 text-slate-700 dark:text-zinc-400 border-slate-200 dark:border-zinc-700";
   }
 };
 
@@ -54,7 +51,7 @@ const getStatusLabel = (status: string) => {
 };
 
 export default function AdminOverviewPage() {
-  const router = useRouter(); // Inisialisasi router
+  const router = useRouter();
 
   // --- State Management ---
   const [data, setData] = useState<{ projects: any[]; services: any[] }>({
@@ -88,30 +85,52 @@ export default function AdminOverviewPage() {
     (acc, p) => acc + (p.budget || 0),
     0
   );
-  const activeProjects = data.projects.filter(
-    (p) => p.status === "in-progress"
-  ).length;
-  const completedProjects = data.projects.filter(
-    (p) => p.status === "completed"
-  ).length;
+  const activeProjects = data.projects.filter((p) => {
+    const progressVal = p.progress !== undefined && p.progress !== null ? p.progress : (p.status === "completed" ? 100 : p.status === "in-progress" ? 45 : 0);
+    return progressVal > 0 && progressVal < 100;
+  }).length;
+  const completedProjects = data.projects.filter((p) => {
+    const progressVal = p.progress !== undefined && p.progress !== null ? p.progress : (p.status === "completed" ? 100 : p.status === "in-progress" ? 45 : 0);
+    return progressVal >= 100;
+  }).length;
 
   // --- Hardcoded Dokumentasi ---
   const docFeatures = [
     {
       title: "Overview",
       desc: "Ringkasan statistik utama dan performa bisnis.",
-      steps: ["..."],
+      steps: ["Pantau total proyek, proyek aktif, proyek selesai, dan total pendapatan secara real-time.", "Lihat daftar 5 proyek terbaru beserta progres pengerjaannya.", "Akses cepat ke detail menu utama admin."],
     },
-    { title: "Portfolio", desc: "Kelola showcase proyek.", steps: ["..."] },
-    { title: "Layanan", desc: "Atur daftar jasa dan harga.", steps: ["..."] },
-    { title: "Chat Client", desc: "Balas pesan real-time.", steps: ["..."] },
-    { title: "Semua Proyek", desc: "Manajemen status proyek.", steps: ["..."] },
+    { 
+      title: "Portfolio", 
+      desc: "Kelola showcase proyek.", 
+      steps: ["Tambah item portfolio baru beserta judul, kategori, deskripsi, tanggal, dan foto.", "Aktifkan status 'Show on Home' untuk menampilkan proyek pada halaman utama portofolio.", "Edit detail portofolio atau hapus proyek yang sudah tidak relevan."] 
+    },
+    { 
+      title: "Layanan", 
+      desc: "Atur daftar jasa dan harga.", 
+      steps: ["Kelola jenis layanan desain yang ditawarkan (interior, arsitektur, dll).", "Atur harga dasar layanan yang akan terintegrasi secara otomatis dengan kalkulator simulasi.", "Ubah status layanan menjadi aktif/nonaktif untuk mengatur ketersediaannya."] 
+    },
+    { 
+      title: "Chat Client", 
+      desc: "Balas pesan real-time.", 
+      steps: ["Lihat pesan masuk dari klien yang diidentifikasi melalui email dan nama.", "Kirim balasan chat yang tersinkronisasi langsung dengan Firebase Database.", "Hapus sesi chat lama yang telah selesai ditangani."] 
+    },
+    { 
+      title: "Semua Proyek", 
+      desc: "Manajemen status proyek.", 
+      steps: ["Pantau seluruh daftar pengerjaan proyek dari tahap penawaran hingga selesai.", "Gunakan range slider untuk mengupdate progres pengerjaan dalam persentase (%).", "Ubah status siklus proyek (Lead, Design, Construction, dll) secara instan."] 
+    },
     {
       title: "User Management",
       desc: "Kelola akses admin/staff.",
-      steps: ["..."],
+      steps: ["Lihat seluruh akun terdaftar beserta detail profil dan email mereka.", "Ubah hak akses/role pengguna (Admin, PM, Staff, Client) melalui pilihan dropdown.", "Hapus akun pengguna yang tidak aktif dengan konfirmasi keamanan."]
     },
-    { title: "Kalkulator", desc: "Set gambaran harga cepat.", steps: ["..."] },
+    { 
+      title: "Kalkulator", 
+      desc: "Set gambaran harga cepat.", 
+      steps: ["Atur harga multiplier material (Standard, Premium, Luxury) secara presisi.", "Atur biaya dasar per ruangan tambahan.", "Uji hasil kalkulasi melalui panel simulasi live preview."] 
+    },
   ];
 
   const handleCloseModal = () => {
@@ -121,137 +140,180 @@ export default function AdminOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="h-96 flex flex-col items-center justify-center text-gray-500">
-        <Loader2 className="animate-spin mb-2" size={32} />
-        <p className="animate-pulse">Sinkronisasi data dengan server...</p>
+      <div className="h-96 flex flex-col items-center justify-center text-slate-500 dark:text-zinc-400">
+        <Loader2 className="animate-spin mb-2 text-primary" size={32} />
+        <p className="animate-pulse text-sm">Sinkronisasi data dengan server...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-8 animate-in fade-in duration-300">
       {/* --- HEADER --- */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-800">Dashboard Overview</h2>
-        <span className="text-sm text-gray-500">
-          Update terakhir: {new Date().toLocaleDateString("id-ID")}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-zinc-200 tracking-tight">
+            Dashboard Overview
+          </h2>
+          <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium">
+            Halo, selamat datang kembali di Panel Admin Cema Design.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-500 dark:text-zinc-400 shadow-sm self-start sm:self-auto transition-colors duration-300">
+          Update: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
         </span>
       </div>
 
       {/* --- KPI CARDS --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* KPI 1 */}
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800/80 shadow-sm flex items-start justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">
+            <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
               Total Proyek
             </p>
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-3xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
               {data.projects.length}
             </h3>
           </div>
-          <div className="p-2 bg-indigo-50 rounded-lg">
-            <Briefcase className="text-indigo-600" size={24} />
+          <div className="p-3 bg-primary/10 dark:bg-primary/20 text-primary rounded-xl border border-primary/20 group-hover:scale-110 transition-transform duration-300">
+            <Briefcase size={22} />
           </div>
         </div>
-        <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+
+        {/* KPI 2 */}
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800/80 shadow-sm flex items-start justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">
+            <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
               Proyek Aktif
             </p>
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-3xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
               {activeProjects}
             </h3>
           </div>
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <Clock className="text-blue-600" size={24} />
+          <div className="p-3 bg-primary/10 dark:bg-primary/20 text-primary rounded-xl border border-primary/20 group-hover:scale-110 transition-transform duration-300">
+            <Clock size={22} />
           </div>
         </div>
-        <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+
+        {/* KPI 3 */}
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800/80 shadow-sm flex items-start justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Selesai</p>
-            <h3 className="text-2xl font-bold text-gray-900">
+            <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+              Proyek Selesai
+            </p>
+            <h3 className="text-3xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
               {completedProjects}
             </h3>
           </div>
-          <div className="p-2 bg-green-50 rounded-lg">
-            <CheckCircle2 className="text-green-600" size={24} />
+          <div className="p-3 bg-primary/10 dark:bg-primary/20 text-primary rounded-xl border border-primary/20 group-hover:scale-110 transition-transform duration-300">
+            <CheckCircle2 size={22} />
           </div>
         </div>
-        <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+
+        {/* KPI 4 */}
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800/80 shadow-sm flex items-start justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Revenue</p>
-            <h3 className="text-xl font-bold text-gray-900">
+            <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+              Total Revenue
+            </p>
+            <h3 className="text-xl font-black text-slate-900 dark:text-zinc-100 truncate max-w-[150px] tracking-tight">
               {formatCurrency(totalRevenue)}
             </h3>
           </div>
-          <div className="p-2 bg-emerald-50 rounded-lg">
-            <Wallet className="text-emerald-600" size={24} />
+          <div className="p-3 bg-primary/10 dark:bg-primary/20 text-primary rounded-xl border border-primary/20 group-hover:scale-110 transition-transform duration-300">
+            <Wallet size={22} />
           </div>
         </div>
       </div>
 
+      {/* --- CONTENT LAYOUT --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* --- TABLE PROYEK (DIUBAH KE PERSENTASE) --- */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-bold text-gray-800">Proyek Terbaru</h3>
+        
+        {/* TABLE RECENT PROJECTS */}
+         <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800/80 shadow-sm overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md">
+          <div className="p-6 border-b border-slate-100 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-900 transition-colors duration-300">
+            <h3 className="font-bold text-slate-800 dark:text-zinc-200">
+              Proyek Terbaru
+            </h3>
             <button
               onClick={() => router.push("/dashboard/admin/projects")}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-xs text-primary hover:text-primary-hover font-bold hover:underline cursor-pointer"
             >
               Lihat Semua
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
+          <div className="overflow-x-auto flex-1 scrollbar-thin">
+            <table className="w-full text-sm text-left border-collapse">
+              <thead className="bg-slate-50/75 dark:bg-zinc-950/40 text-slate-400 dark:text-zinc-500 border-b border-slate-200 dark:border-zinc-800/80 text-xs font-semibold uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3 font-medium">Nama Proyek</th>
-                  <th className="px-6 py-3 font-medium">Progres</th>
-                  <th className="px-6 py-3 font-medium">Status</th>
-                  <th className="px-6 py-3 font-medium text-center">Aksi</th>
+                  <th className="px-6 py-3.5">Nama Proyek</th>
+                  <th className="px-6 py-3.5">Progres</th>
+                  <th className="px-6 py-3.5">Status</th>
+                  <th className="px-6 py-3.5 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {data.projects.slice(0, 5).map((project) => {
-                  // Fallback progres jika API belum mengirimkan field progress
-                  const progressValue =
-                    project.progress ||
-                    (project.status === "completed"
-                      ? 100
-                      : project.status === "in-progress"
-                      ? 45
-                      : 0);
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/50">
+                {[...data.projects]
+                  .sort((a, b) => {
+                    const progressA =
+                      a.progress !== undefined && a.progress !== null
+                        ? a.progress
+                        : (a.status === "completed"
+                        ? 100
+                        : a.status === "in-progress"
+                        ? 45
+                        : 0);
+                    const progressB =
+                      b.progress !== undefined && b.progress !== null
+                        ? b.progress
+                        : (b.status === "completed"
+                        ? 100
+                        : b.status === "in-progress"
+                        ? 45
+                        : 0);
+                    return progressB - progressA;
+                  })
+                  .slice(0, 8)
+                  .map((project) => {
+                    const progressValue =
+                      project.progress !== undefined && project.progress !== null
+                        ? project.progress
+                        : (project.status === "completed"
+                        ? 100
+                        : project.status === "in-progress"
+                        ? 45
+                        : 0);
 
                   return (
                     <tr
                       key={project._id || project.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/20 transition-all duration-150 border-b border-slate-100 dark:border-zinc-800/50"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">
+                        <div className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
                           {project.name}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-slate-400 dark:text-zinc-500 mt-0.5">
                           {project.serviceType || "Layanan"}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-24 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="w-24 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden border border-slate-200/20 dark:border-zinc-700/25">
                             <div
-                              className="bg-blue-600 h-full rounded-full"
+                              className="bg-primary h-full rounded-full"
                               style={{ width: `${progressValue}%` }}
                             ></div>
                           </div>
-                          <span className="text-xs font-semibold text-gray-600">
+                          <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
                             {progressValue}%
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                          className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border ${getStatusColor(
                             project.status
                           )}`}
                         >
@@ -259,7 +321,10 @@ export default function AdminOverviewPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <button className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100">
+                        <button
+                          onClick={() => router.push("/dashboard/admin/projects")}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-350 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                        >
                           <MoreHorizontal size={16} />
                         </button>
                       </td>
@@ -268,73 +333,104 @@ export default function AdminOverviewPage() {
                 })}
               </tbody>
             </table>
+            {data.projects.length === 0 && (
+              <div className="text-center py-12 text-slate-400 dark:text-zinc-500 text-sm italic">
+                Belum ada proyek terbaru.
+              </div>
+            )}
           </div>
         </div>
 
-        {/* --- LAYANAN AKTIF --- */}
+        {/* SERVICES & HELP SIDEBAR */}
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="font-bold text-gray-800 mb-4">Layanan Aktif</h3>
+          {/* Layanan Aktif */}
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200/60 dark:border-zinc-800/80 shadow-sm p-6 transition-all duration-300 hover:shadow-md">
+            <h3 className="font-bold text-slate-800 dark:text-zinc-200 mb-4">
+              Layanan Aktif
+            </h3>
             <div className="space-y-3">
-              {data.services.map((service, index) => (
-                <div
-                  key={service._id || index}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
-                >
-                  <span className="font-medium text-gray-700">
-                    {service.name || service.title}
-                  </span>
-                  <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">
-                    Active
-                  </span>
+              {data.services.map((service, index) => {
+                const isActive = service.isShown !== false;
+                return (
+                  <div
+                    key={service._id || index}
+                    className="flex items-center justify-between p-3.5 bg-slate-50/60 dark:bg-zinc-950/40 rounded-xl border border-slate-200 dark:border-zinc-800/80 hover:bg-slate-100/40 dark:hover:bg-zinc-950/80 transition-all duration-200"
+                  >
+                    <span className="font-bold text-slate-700 dark:text-zinc-300 text-xs">
+                      {service.name || service.title}
+                    </span>
+                    {isActive ? (
+                      <span className="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-lg font-bold bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30 animate-pulse">
+                        Aktif
+                      </span>
+                    ) : (
+                      <span className="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-lg font-bold bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
+                        Nonaktif
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+              {data.services.length === 0 && (
+                <div className="text-center py-6 text-slate-400 dark:text-zinc-500 text-xs italic">
+                  Belum ada layanan aktif.
                 </div>
-              ))}
+              )}
             </div>
-            {/* Navigasi ke halaman layanan */}
+            
             <button
               onClick={() => router.push("/dashboard/admin/service")}
-              className="w-full mt-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              className="w-full mt-4 py-2.5 text-xs text-slate-600 dark:text-zinc-350 border border-slate-200 dark:border-zinc-800 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/50 font-bold transition-all active:scale-[0.98] cursor-pointer"
             >
               Kelola Layanan
             </button>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-md p-6 text-white">
-            <h3 className="font-bold text-lg mb-2">Butuh Bantuan?</h3>
-            <p className="text-blue-100 text-sm mb-4">
-              Cek dokumentasi admin atau hubungi developer.
-            </p>
-            <button
-              onClick={() => setIsDocOpen(true)}
-              className="px-4 py-2 bg-white text-blue-700 text-sm font-bold rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
-            >
-              Lihat Dokumentasi
-            </button>
+          {/* Banner Bantuan */}
+          <div className="bg-gradient-to-br from-primary to-primary-dark rounded-2xl shadow-lg hover:shadow-xl p-6 text-white relative overflow-hidden transition-all duration-300">
+            <div className="absolute -right-8 -bottom-8 opacity-15 rotate-12 transition-transform duration-500 hover:scale-110">
+              <BookOpen size={160} />
+            </div>
+            <div className="relative z-10 space-y-4">
+              <div>
+                <h3 className="font-black text-lg mb-1 tracking-tight">Butuh Bantuan?</h3>
+                <p className="text-white/85 text-xs leading-relaxed max-w-[200px]">
+                  Cek panduan pengoperasian sistem atau langkah pengelolaan fitur Cema Design.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsDocOpen(true)}
+                className="px-4.5 py-2.5 bg-white text-primary text-xs font-extrabold rounded-xl hover:bg-slate-50 hover:shadow-md transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
+              >
+                Lihat Dokumentasi
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* --- POPUP MODAL (Tetap Hardcode sesuai permintaan) --- */}
+      {/* --- POPUP MODAL --- */}
       {isDocOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={handleCloseModal}
           ></div>
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col z-10 animate-in zoom-in-95 duration-200 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <div className="flex items-center gap-2 text-blue-700">
+          <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col z-10 animate-in zoom-in-95 duration-200 overflow-hidden border border-slate-200 dark:border-zinc-800 transition-colors duration-300">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 dark:border-zinc-800 flex justify-between items-center bg-slate-100 dark:bg-zinc-900/50">
+              <div className="flex items-center gap-2 text-primary font-bold">
                 {selectedFeature ? (
                   <button
                     onClick={() => setSelectedFeature(null)}
-                    className="mr-2 p-1 hover:bg-blue-100 rounded-full transition-colors"
+                    className="mr-2 p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-full transition-colors cursor-pointer"
                   >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={18} className="text-slate-600 dark:text-zinc-400" />
                   </button>
                 ) : (
-                  <BookOpen size={20} />
+                  <BookOpen size={18} />
                 )}
-                <h2 className="text-lg font-bold">
+                <h2 className="text-sm font-bold text-slate-800 dark:text-zinc-200">
                   {selectedFeature
                     ? selectedFeature.title
                     : "Dokumentasi Fitur Admin"}
@@ -342,32 +438,33 @@ export default function AdminOverviewPage() {
               </div>
               <button
                 onClick={handleCloseModal}
-                className="p-1 hover:bg-gray-200 rounded-full transition-colors text-gray-500"
+                className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-full transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-zinc-250 cursor-pointer"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-0">
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
               {selectedFeature ? (
-                <div className="p-6 animate-in slide-in-from-right-4 duration-300">
-                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-6">
-                    <p className="text-blue-800 text-sm font-medium">
+                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                  <div className="bg-primary-light/50 dark:bg-primary-dark/10 border border-primary/20 p-4 rounded-xl">
+                    <p className="text-slate-700 dark:text-zinc-300 text-xs font-semibold leading-relaxed">
                       {selectedFeature.desc}
                     </p>
                   </div>
-                  <h4 className="font-bold text-gray-800 mb-4">
-                    Langkah-langkah:
+                  <h4 className="font-bold text-slate-800 dark:text-zinc-200 text-xs uppercase tracking-wider">
+                    Panduan & Langkah Pengoperasian:
                   </h4>
-                  <ol className="relative border-l border-gray-200 ml-3 space-y-6">
+                  <ol className="relative border-l border-slate-200 dark:border-zinc-800/80 ml-3 space-y-6">
                     {selectedFeature.steps?.map((step: string, idx: number) => (
                       <li key={idx} className="ml-6">
-                        <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full ring-4 ring-white">
-                          <span className="text-blue-600 text-xs font-bold">
+                        <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-primary/10 dark:bg-primary/20 rounded-full border border-primary/30">
+                          <span className="text-primary text-xs font-bold">
                             {idx + 1}
                           </span>
                         </span>
-                        <p className="text-gray-600 text-sm leading-relaxed">
+                        <p className="text-slate-600 dark:text-zinc-400 text-sm leading-relaxed">
                           {step}
                         </p>
                       </li>
@@ -375,24 +472,24 @@ export default function AdminOverviewPage() {
                   </ol>
                 </div>
               ) : (
-                <div className="grid divide-y divide-gray-100">
+                <div className="grid divide-y divide-slate-100 dark:divide-zinc-800/50">
                   {docFeatures.map((item, index) => (
                     <div
                       key={index}
                       onClick={() => setSelectedFeature(item)}
-                      className="p-5 hover:bg-gray-50 transition-colors cursor-pointer group flex justify-between items-center"
+                      className="py-4 px-3 hover:bg-slate-50 dark:hover:bg-zinc-800/30 rounded-xl transition-all cursor-pointer group flex justify-between items-center"
                     >
-                      <div>
-                        <h4 className="font-bold text-gray-800 mb-1 flex items-center gap-2 group-hover:text-blue-600 transition-colors">
-                          <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      <div className="flex-1 min-w-0 pr-4">
+                        <h4 className="font-bold text-slate-800 dark:text-zinc-200 mb-1 flex items-center gap-2 group-hover:text-primary transition-colors text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
                           {item.title}
                         </h4>
-                        <p className="text-gray-600 text-sm ml-4">
+                        <p className="text-slate-1000 dark:text-zinc-500 text-xs truncate">
                           {item.desc}
                         </p>
                       </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400">
-                        <ArrowLeft size={16} className="rotate-180" />
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 dark:text-zinc-500">
+                        <ArrowLeft size={16} className="rotate-180 text-primary" />
                       </div>
                     </div>
                   ))}
@@ -400,18 +497,19 @@ export default function AdminOverviewPage() {
               )}
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-900/50 flex justify-end gap-2">
               {selectedFeature && (
                 <button
                   onClick={() => setSelectedFeature(null)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm mr-2 transition-colors"
+                  className="px-4 py-2 border border-slate-250 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl hover:bg-white dark:hover:bg-zinc-800 font-bold text-xs transition-colors cursor-pointer"
                 >
                   Kembali ke Menu
                 </button>
               )}
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium text-sm transition-colors"
+                className="px-4 py-2 bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl hover:bg-slate-350 dark:hover:bg-zinc-700 font-bold text-xs transition-colors cursor-pointer"
               >
                 Tutup
               </button>

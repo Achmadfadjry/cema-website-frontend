@@ -1,380 +1,360 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { ref, onValue, DataSnapshot, push, update, serverTimestamp, off, remove } from "firebase/database";
-import { Send, Search, User, Trash2, AlertTriangle, CheckCircle } from "lucide-react";
+import {
+  ref,
+  onValue,
+  push,
+  update,
+  remove,
+  serverTimestamp,
+} from "firebase/database";
+import type { ChatClient, ChatMessage } from "@/lib/types";
+import {
+  Trash2,
+  Send,
+  User,
+  MessageSquare,
+  CheckCircle,
+  AlertTriangle,
+  X,
+  Search,
+} from "lucide-react";
 
-interface ChatMessage {
-  id: string;
-  text: string;
-  sender: "client" | "admin";
-  timestamp: number;
-}
-
-interface UserChatMetadata {
-  userName: string;
-  userEmail?: string;
-  lastMessage: string;
-  timestamp: number;
-  unreadCount?: number;
-}
-
-interface UserChatListItem {
-  uid: string;
-  meta: UserChatMetadata;
-}
-
-export default function AdminChatPage() {
-  const [users, setUsers] = useState<UserChatListItem[]>([]);
-  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+export default function ChatClientPage() {
+  const [clients, setClients] = useState<ChatClient[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [replyText, setReplyText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [inputText, setInputText] = useState("");
 
-  // UI States for Delete Feature
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Listen ke list user di Firebase (Node "chata")
   useEffect(() => {
-    const chataRef = ref(db, "chata");
-    const listener = onValue(chataRef, (snapshot: DataSnapshot) => {
-      if (!snapshot.exists()) {
-        setUsers([]);
-        return;
-      }
-
+    const chatsRef = ref(db, "chata");
+    const unsubscribe = onValue(chatsRef, (snapshot) => {
       const data = snapshot.val();
-      const loadedUsers: UserChatListItem[] = [];
+      const loadedClients: ChatClient[] = [];
 
-      Object.keys(data).forEach((uid) => {
-        const meta = data[uid].meta;
-        if (meta) {
-          loadedUsers.push({
-            uid: uid,
-            meta: {
-              userName: meta.userName || "Unknown User",
-              userEmail: meta.userEmail || "",
-              lastMessage: meta.lastMessage || "",
-              timestamp: meta.timestamp || 0,
+      if (data) {
+        Object.keys(data).forEach((key) => {
+          const meta = data[key].meta;
+          if (meta) {
+            loadedClients.push({
+              id: key,
+              name: meta.userName || meta.name || "Guest User",
+              lastMessage: meta.lastMessage,
               unreadCount: meta.unreadCount || 0,
-            },
-          });
-        }
-      });
-
-      // Urutkan: Chat terbaru muncul paling atas
-      const sorted = loadedUsers.sort(
-        (a, b) => (b.meta.timestamp || 0) - (a.meta.timestamp || 0)
-      );
-      setUsers(sorted);
+              online: true,
+            });
+          }
+        });
+      }
+      setClients(loadedClients.reverse());
     });
 
-    return () => {
-      off(chataRef, "value", listener);
-    };
+    return () => unsubscribe();
   }, []);
 
-  // 2. Listen ke isi pesan saat user dipilih
   useEffect(() => {
-    if (!selectedUid) return;
+    if (!selectedClientId) return;
 
-    const messagesRef = ref(db, `chata/${selectedUid}/messages`);
-    const listener = onValue(messagesRef, (snapshot: DataSnapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const msgArray = Object.entries(data).map(([key, value]: [string, any]) => ({
-          id: key,
-          ...value
-        })) as ChatMessage[];
-
-        setMessages(
-          msgArray.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
-        );
-      } else {
-        setMessages([]);
-      }
+    // Reset unread count when opening the chat
+    update(ref(db, `chata/${selectedClientId}/meta`), {
+      unreadCount: 0,
     });
 
-    // Reset unread count ketika membuka chat
-    const metaRef = ref(db, `chata/${selectedUid}/meta`);
-    update(metaRef, { unreadCount: 0 }).catch(err => console.error("Failed to reset unread", err));
+    const messagesRef = ref(db, `chata/${selectedClientId}/messages`);
+    const unsubscribe = onValue(messagesRef, (snapshot) => {
+      // Clear unread count when new messages arrive while this room is active
+      update(ref(db, `chata/${selectedClientId}/meta`), {
+        unreadCount: 0,
+      });
 
-    return () => {
-      off(messagesRef, "value", listener);
-    };
-  }, [selectedUid]);
+      const msgsData = snapshot.val();
+      const loadedMessages: ChatMessage[] = [];
 
-  // Auto scroll ke bawah saat pesan baru masuk
-  useEffect(() => {
-    if (messages.length > 0) {
+      if (msgsData) {
+        Object.keys(msgsData).forEach((key) => {
+          const m = msgsData[key];
+          const isFromClient = m.sender === "user" || m.sender === "client";
+          loadedMessages.push({
+            id: key,
+            senderId: isFromClient ? (selectedClientId as string) : "admin",
+            senderName: isFromClient ? "Client" : "Admin",
+            senderRole: (isFromClient ? "USER" : "ADMIN") as any,
+            receiverId: isFromClient ? "admin" : (selectedClientId as string),
+            message: m.text || "",
+            timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+            isAdmin: m.sender === "agent" || m.sender === "admin",
+            read: m.read || false,
+          });
+        });
+      }
+      setMessages(loadedMessages);
+
       setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
-    }
-  }, [messages]);
+    });
 
-  const handleSend = async () => {
-    if (!selectedUid || !replyText.trim()) return;
-    setLoading(true);
+    return () => unsubscribe();
+  }, [selectedClientId]);
 
-    try {
-      const text = replyText.trim();
-      setReplyText(""); // Optimistic update
+  const handleSendMessage = () => {
+    if (!inputText.trim() || !selectedClientId) return;
 
-      // 1. Push message to firebase
-      const messagesRef = ref(db, `chata/${selectedUid}/messages`);
-      await push(messagesRef, {
-        text: text,
-        sender: "admin",
-        timestamp: serverTimestamp()
-      });
+    const chatRef = ref(db, `chata/${selectedClientId}/messages`);
+    push(chatRef, {
+      sender: "agent",
+      text: inputText,
+      time: new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      timestamp: new Date().toISOString(),
+    });
 
-      // 2. Update meta data
-      const metaRef = ref(db, `chata/${selectedUid}/meta`);
-      await update(metaRef, {
-        lastMessage: `You: ${text}`,
-        timestamp: serverTimestamp(),
-      });
+    update(ref(db, `chata/${selectedClientId}/meta`), {
+      lastMessage: `Admin: ${inputText}`,
+      lastTimestamp: serverTimestamp(),
+      timestamp: serverTimestamp(),
+    });
 
-    } catch (error) {
-      console.error("Failed to send message", error);
-      alert("Gagal mengirim pesan");
-    } finally {
-      setLoading(false);
-    }
+    setInputText("");
   };
 
-  // --- DELETE FEATURE LOGIC ---
   const requestDeleteChat = () => {
-    if (!selectedUid) return;
+    if (!selectedClientId) return;
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDeleteChat = async () => {
-    if (!selectedUid) return;
+  const confirmDeleteChat = () => {
+    if (!selectedClientId) return;
 
-    try {
-      await remove(ref(db, `chata/${selectedUid}`));
+    remove(ref(db, `chata/${selectedClientId}`))
+      .then(() => {
+        setIsDeleteModalOpen(false);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
 
-      setIsDeleteModalOpen(false);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-
-      setSelectedUid(null);
-      setMessages([]);
-    } catch (error) {
-      console.error("Gagal menghapus chat:", error);
-      alert("Gagal menghapus chat");
-      setIsDeleteModalOpen(false);
-    }
+        setSelectedClientId(null);
+        setMessages([]);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Gagal menghapus sesi chat.");
+        setIsDeleteModalOpen(false);
+      });
   };
 
-  const filteredUsers = users.filter(user =>
-    user.meta.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.meta.userEmail && user.meta.userEmail.toLowerCase().includes(searchTerm.toLowerCase()))
+  // Filter clients based on search query
+  const filteredClients = clients.filter((c) =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeUser = users.find((u) => u.uid === selectedUid);
-
   return (
-    <div className="relative flex h-[calc(100vh-64px)] bg-gray-50 overflow-hidden font-sans">
-
-      {/* --- MODAL KONFIRMASI HAPUS (POPUP TENGAH) --- */}
+    <div className="relative w-full h-[calc(100vh-12rem)] min-h-[500px] bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm flex overflow-hidden transition-colors duration-300">
+      
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-lg shadow-2xl p-6 w-80 transform scale-100 animate-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600">
-                <AlertTriangle size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900">
-                Hapus Sesi Chat?
-              </h3>
-              <p className="text-sm text-gray-500 mt-2 mb-6">
-                Riwayat chat ini akan dihapus permanen dan tidak bisa dikembalikan.
-              </p>
-              <div className="flex gap-3 w-full">
-                <button
-                  onClick={() => setIsDeleteModalOpen(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={confirmDeleteChat}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition-colors shadow-sm"
-                >
-                  Ya, Hapus
-                </button>
-              </div>
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 w-full max-w-xs shadow-2xl animate-in zoom-in-95 duration-200 text-center transition-colors duration-300">
+            <div className="w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-900/30">
+              <AlertTriangle size={24} />
+            </div>
+            <h3 className="text-base font-black text-slate-800 dark:text-zinc-100 tracking-tight">
+              Hapus Sesi Chat?
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2 mb-6 leading-relaxed">
+              Riwayat percakapan dengan klien ini akan dihapus secara permanen dari server.
+            </p>
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="flex-1 py-2.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 rounded-xl hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-bold transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmDeleteChat}
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-red-600/20 cursor-pointer"
+              >
+                Ya, Hapus
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- TOAST SUKSES (POPUP ATAS) --- */}
+      {/* Toast Notification Container */}
       {showToast && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="bg-green-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-green-600 text-white px-5 py-2.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-bold">
             <CheckCircle size={16} />
             <span>Sesi chat berhasil dihapus!</span>
           </div>
         </div>
       )}
 
-      {/* Sidebar - Daftar User dari Firebase */}
-      <div className="w-80 bg-white border-r flex flex-col shadow-sm z-10">
-        <div className="p-4 border-b bg-white">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Pesan Masuk</h2>
+      {/* --- SIDEBAR LIST CLIENT --- */}
+      <div className="w-80 border-r border-slate-200/80 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex flex-col shrink-0">
+        <div className="p-4 border-b border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition-colors duration-300 space-y-3">
+          <h2 className="font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2 text-sm">
+            <MessageSquare size={16} className="text-primary" />
+            Antrian Chat
+          </h2>
+          {/* Search bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
             <input
               type="text"
-              placeholder="Cari user..."
-              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cari nama klien..."
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 rounded-xl outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary text-xs font-medium text-slate-800 dark:text-zinc-200 transition-all placeholder-slate-400 dark:placeholder-zinc-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto">
-          {filteredUsers.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 text-sm">
-              Belum ada pesan.
+
+        {/* Client List */}
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800 scrollbar-thin">
+          {filteredClients.length === 0 && (
+            <div className="p-8 text-center text-slate-400 dark:text-zinc-500 text-xs italic">
+              Belum ada pesan masuk.
             </div>
-          ) : (
-            filteredUsers.map((user) => (
+          )}
+          {filteredClients.map((client) => {
+            const isSelected = selectedClientId === client.id;
+            return (
               <div
-                key={user.uid}
-                onClick={() => setSelectedUid(user.uid)}
-                className={`p-4 border-b cursor-pointer transition-colors hover:bg-gray-50 ${selectedUid === user.uid
-                  ? "bg-blue-50 border-l-4 border-l-blue-600"
-                  : "border-l-4 border-l-transparent"
+                key={client.id}
+                onClick={() => setSelectedClientId(client.id)}
+                className={`p-4 cursor-pointer transition-all border-l-4 
+                  ${
+                    isSelected
+                      ? "bg-primary/10 dark:bg-primary/20 border-l-primary text-primary"
+                      : "border-l-transparent text-slate-600 dark:text-zinc-400 hover:bg-slate-100/40 dark:hover:bg-zinc-800/25"
                   }`}
               >
-                <div className="flex justify-between items-start mb-1">
-                  <p className={`font-semibold text-sm truncate pr-2 ${selectedUid === user.uid ? 'text-blue-700' : 'text-gray-900'}`}>
-                    {user.meta.userName}
-                  </p>
-                  {user.meta.timestamp > 0 && (
-                    <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                      {new Date(user.meta.timestamp).toLocaleDateString()}
+                <div className="flex justify-between items-start mb-1 gap-2">
+                  <span
+                    className={`font-bold text-xs truncate ${
+                      isSelected ? "text-primary dark:text-primary-hover" : "text-slate-800 dark:text-zinc-250"
+                    }`}
+                  >
+                    {client.name}
+                  </span>
+                  {client.unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0">
+                      {client.unreadCount}
                     </span>
                   )}
                 </div>
-                <div className="flex justify-between items-center">
-                  <p className="text-xs text-gray-500 truncate w-3/4">
-                    {user.meta.lastMessage}
-                  </p>
-                  {user.meta.unreadCount ? (
-                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                      {user.meta.unreadCount}
-                    </span>
-                  ) : null}
-                </div>
+                <p className="text-[11px] text-slate-400 dark:text-zinc-500 truncate leading-tight">
+                  {client.lastMessage}
+                </p>
               </div>
-            ))
-          )}
+            );
+          })}
         </div>
       </div>
 
-      {/* Chat Window */}
-      <div className="flex-1 flex flex-col bg-[#F8FAFC]">
-        {selectedUid ? (
+      {/* --- MAIN CHAT AREA --- */}
+      <div className="flex-1 flex flex-col h-full bg-slate-50/30 dark:bg-zinc-900/10 min-w-0">
+        {selectedClientId ? (
           <>
-            <div className="p-4 bg-white border-b shadow-sm flex items-center justify-between z-10">
+            {/* Header Chat */}
+            <div className="h-16 border-b border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 flex justify-between items-center transition-colors duration-300 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                  {activeUser?.meta.userName.charAt(0).toUpperCase()}
+                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                  <User size={16} />
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-800 text-sm">
-                    {activeUser?.meta.userName}
-                  </h2>
-                  {activeUser?.meta.userEmail && (
-                    <p className="text-xs text-gray-500">{activeUser.meta.userEmail}</p>
-                  )}
+                  <h4 className="font-bold text-slate-800 dark:text-zinc-200 text-xs">
+                    {clients.find((c) => c.id === selectedClientId)?.name}
+                  </h4>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-semibold">Online</span>
+                  </div>
                 </div>
               </div>
               <button
                 onClick={requestDeleteChat}
-                className="flex items-center gap-2 text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
-                title="Hapus Seluruh Sesi Chat"
+                className="flex items-center gap-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 px-3 py-2 rounded-xl text-xs font-bold border border-transparent hover:border-red-200/50 dark:hover:border-red-900/30 transition-all cursor-pointer"
               >
-                <Trash2 size={14} />
+                <Trash2 size={13} />
                 Hapus Sesi
               </button>
             </div>
 
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
-              {messages.length === 0 && (
-                <div className="text-center py-10 text-gray-400 text-sm">
-                  Belum ada pesan di percakapan ini.
-                </div>
-              )}
-              {messages.map((msg, i) => {
-                const isAdmin = msg.sender === "admin";
-                return (
+            {/* Messages List Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0 scrollbar-thin">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.isAdmin ? "justify-end" : "justify-start"}`}
+                >
                   <div
-                    key={msg.id || i}
-                    className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}
+                    className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm text-xs font-medium border ${
+                      msg.isAdmin
+                        ? "bg-gradient-to-br from-primary to-primary-dark border-primary/20 text-white rounded-tr-none shadow-primary/5"
+                        : "bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 rounded-tl-none"
+                    }`}
                   >
-                    <div
-                      className={`max-w-[70%] p-3 rounded-2xl shadow-sm text-sm ${isAdmin
-                        ? "bg-blue-600 text-white rounded-br-none"
-                        : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
-                        }`}
+                    <p className="leading-relaxed break-words">{msg.message}</p>
+                    <p
+                      className={`text-[9px] mt-1 text-right font-bold ${
+                        msg.isAdmin ? "text-white/80" : "text-slate-400 dark:text-zinc-500"
+                      }`}
                     >
-                      <p>{msg.text}</p>
-                      <p
-                        className={`text-[10px] mt-1 ${isAdmin ? "text-blue-100 text-right" : "text-gray-400 text-left"
-                          }`}
-                      >
-                        {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }) : '...'}
-                      </p>
-                    </div>
+                      {msg.timestamp.toLocaleTimeString("id-ID", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                   </div>
-                );
-              })}
-              <div ref={scrollRef} />
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 bg-white border-t flex gap-3 items-center">
-              <input
-                type="text"
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Tulis balasan anda..."
-                className="flex-1 border border-gray-200 bg-gray-50 rounded-full px-5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-              />
-              <button
-                onClick={handleSend}
-                disabled={loading || !replyText.trim()}
-                className="bg-blue-600 text-white p-2.5 rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-md"
-              >
-                {loading ? <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Send className="h-5 w-5" />}
-              </button>
+            {/* Input Area */}
+            <div className="p-4 bg-white dark:bg-zinc-900 border-t border-slate-200/80 dark:border-zinc-800 transition-colors duration-300 shrink-0">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                  placeholder="Ketik balasan..."
+                  className="flex-1 border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/45 text-xs font-medium placeholder-slate-400 dark:placeholder-zinc-500"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputText.trim()}
+                  className="bg-primary text-white px-4 py-2.5 rounded-xl hover:bg-primary-hover disabled:bg-primary/50 disabled:cursor-not-allowed transition-all shadow-md shadow-primary/20 flex items-center justify-center cursor-pointer active:scale-95"
+                >
+                  <Send size={15} />
+                </button>
+              </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-            <div className="bg-gray-100 p-6 rounded-full mb-4">
-              <User className="h-12 w-12 text-gray-300" />
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 bg-slate-50/50 dark:bg-zinc-900/40 transition-colors duration-300 p-8 text-center">
+            <div className="p-4 bg-primary/10 dark:bg-primary/20 text-primary rounded-full mb-4 border border-primary/20">
+              <MessageSquare size={32} />
             </div>
-            <p className="font-medium">Pilih percakapan untuk memulai chat</p>
+            <h4 className="font-bold text-slate-800 dark:text-zinc-250 text-sm tracking-tight mb-1">Mulai Obrolan</h4>
+            <p className="text-[11px] font-semibold text-slate-400 dark:text-zinc-500 max-w-[200px] leading-relaxed">Pilih client di sebelah kiri untuk memulai chat.</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-
