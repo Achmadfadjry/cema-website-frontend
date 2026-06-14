@@ -20,11 +20,19 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+interface AdminChatMessage extends Omit<ChatMessage, 'senderRole'> {
+  isEdited?: boolean;
+  isDeleted?: boolean;
+  senderRole?: string;
+}
+
 export default function CSChatPage() {
   const [clients, setClients] = useState<ChatClient[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<AdminChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   const [showToast, setShowToast] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -73,7 +81,7 @@ export default function CSChatPage() {
       });
 
       const msgsData = snapshot.val();
-      const loadedMessages: ChatMessage[] = [];
+      const loadedMessages: AdminChatMessage[] = [];
 
       if (msgsData) {
         Object.keys(msgsData).forEach((key) => {
@@ -83,14 +91,16 @@ export default function CSChatPage() {
             senderId:
               m.sender === "user" ? (selectedClientId as string) : "admin",
             senderName: m.sender === "user" ? "Client" : "Admin",
-            senderRole: (m.sender === "user" ? "USER" : "ADMIN") as any,
+            senderRole: m.sender === "user" ? "USER" : "ADMIN",
             receiverId:
               m.sender === "user" ? "admin" : (selectedClientId as string),
             message: m.text || "",
             timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
             isAdmin: m.sender === "agent" || m.sender === "admin",
             read: m.read || false,
-          });
+            isEdited: m.isEdited || false,
+            isDeleted: m.isDeleted || false,
+          } as AdminChatMessage);
         });
       }
       setMessages(loadedMessages);
@@ -123,6 +133,51 @@ export default function CSChatPage() {
     });
 
     setInputText("");
+  };
+
+  const isWithin5Minutes = (timestamp: Date) => {
+    if (!timestamp) return false;
+    const diff = (new Date().getTime() - timestamp.getTime()) / (1000 * 60);
+    return diff <= 5;
+  };
+
+  const handleDeleteMessage = (id: string, timestamp: Date) => {
+    if (!selectedClientId) return;
+    if (!isWithin5Minutes(timestamp)) {
+      alert("Pesan hanya dapat dihapus dalam 5 menit!");
+      return;
+    }
+    
+    if (confirm("Apakah Anda yakin ingin menghapus pesan ini?")) {
+      update(ref(db, `chats/${selectedClientId}/messages/${id}`), {
+        text: "🗑️ Pesan dihapus oleh admin",
+        isDeleted: true,
+      });
+    }
+  };
+
+  const handleStartEdit = (id: string, currentText: string, timestamp: Date) => {
+    if (!isWithin5Minutes(timestamp)) {
+      alert("Pesan hanya dapat diedit dalam 5 menit!");
+      return;
+    }
+    setEditingMessageId(id);
+    setEditingText(currentText);
+  };
+
+  const handleSaveEdit = (id: string) => {
+    if (!selectedClientId || !editingText.trim()) return;
+    
+    update(ref(db, `chats/${selectedClientId}/messages/${id}`), {
+      text: editingText.trim(),
+      isEdited: true,
+    }).then(() => {
+      setEditingMessageId(null);
+      setEditingText("");
+    }).catch((err) => {
+      console.error(err);
+      alert("Gagal mengedit pesan");
+    });
   };
 
   const requestDeleteChat = () => {
@@ -283,21 +338,97 @@ export default function CSChatPage() {
                   <div
                     className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm text-xs font-medium border ${
                       msg.isAdmin
-                        ? "bg-gradient-to-br from-primary to-primary-dark border-primary/20 text-white rounded-tr-none shadow-primary/5"
+                        ? msg.isDeleted
+                          ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 italic border-zinc-200 dark:border-zinc-800 rounded-tr-none"
+                          : "bg-gradient-to-br from-primary to-primary-dark border-primary/20 text-white rounded-tr-none shadow-primary/5"
+                        : msg.isDeleted
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 italic border-zinc-200 dark:border-zinc-800 rounded-tl-none"
                         : "bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 rounded-tl-none"
                     }`}
                   >
-                    <p className="leading-relaxed break-words">{msg.message}</p>
-                    <p
-                      className={`text-[9px] mt-1 text-right font-bold ${
-                        msg.isAdmin ? "text-white/85" : "text-slate-400 dark:text-zinc-500"
-                      }`}
-                    >
-                      {msg.timestamp.toLocaleTimeString("id-ID", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                    {editingMessageId === msg.id ? (
+                      <div className="flex flex-col gap-2 min-w-[200px]">
+                        <textarea
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          rows={2}
+                          className="w-full resize-none bg-white/10 border border-white/20 rounded p-2 text-white text-xs outline-none focus:ring-1 focus:ring-white"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSaveEdit(msg.id);
+                            }
+                            if (e.key === "Escape") {
+                              setEditingMessageId(null);
+                              setEditingText("");
+                            }
+                          }}
+                          autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingMessageId(null);
+                              setEditingText("");
+                            }}
+                            className="text-[10px] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30 font-bold transition-colors"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            onClick={() => handleSaveEdit(msg.id)}
+                            className="text-[10px] bg-white text-primary px-2 py-1 rounded hover:bg-white/90 font-bold transition-colors"
+                          >
+                            Simpan
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="leading-relaxed break-words">
+                          {msg.message}
+                          {msg.isEdited && (
+                            <span className="text-[9px] opacity-75 block text-right mt-0.5 italic">
+                              (diedit)
+                            </span>
+                          )}
+                        </p>
+                        <p
+                          className={`text-[9px] mt-1 text-right font-bold ${
+                            msg.isAdmin
+                              ? msg.isDeleted
+                                ? "text-zinc-400 dark:text-zinc-500"
+                                : "text-white/85"
+                              : "text-slate-400 dark:text-zinc-500"
+                          }`}
+                        >
+                          {msg.timestamp.toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        {msg.isAdmin &&
+                          !msg.isDeleted &&
+                          isWithin5Minutes(msg.timestamp) && (
+                            <div className="flex justify-end gap-3 mt-1.5 opacity-60 hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() =>
+                                  handleStartEdit(msg.id, msg.message, msg.timestamp)
+                                }
+                                className="text-[9px] text-white/85 hover:text-white font-bold cursor-pointer underline"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMessage(msg.id, msg.timestamp)}
+                                className="text-[9px] text-white/85 hover:text-red-200 font-bold cursor-pointer underline"
+                              >
+                                Hapus
+                              </button>
+                            </div>
+                          )}
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

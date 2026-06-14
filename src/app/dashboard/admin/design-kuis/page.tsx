@@ -250,7 +250,7 @@ export default function DesignQuizAdmin() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 relative">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm gap-4 transition-colors duration-300">
         <div className="flex items-center gap-3">
@@ -284,21 +284,19 @@ export default function DesignQuizAdmin() {
       <div className="flex border-b border-slate-200 dark:border-zinc-800 gap-2">
         <button
           onClick={() => setActiveTab("styles")}
-          className={`pb-3 px-5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-            activeTab === "styles"
+          className={`pb-3 px-5 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === "styles"
               ? "text-primary border-primary"
               : "text-slate-400 dark:text-zinc-500 border-transparent hover:text-slate-600 dark:hover:text-zinc-300"
-          }`}
+            }`}
         >
           1. Atur Kategori Desain (Hasil)
         </button>
         <button
           onClick={() => setActiveTab("questions")}
-          className={`pb-3 px-5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-            activeTab === "questions"
+          className={`pb-3 px-5 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === "questions"
               ? "text-primary border-primary"
               : "text-slate-400 dark:text-zinc-500 border-transparent hover:text-slate-600 dark:hover:text-zinc-300"
-          }`}
+            }`}
         >
           2. Atur Pertanyaan & Gambar
         </button>
@@ -328,7 +326,7 @@ export default function DesignQuizAdmin() {
                 <div className="bg-primary/10 dark:bg-primary/20 text-primary w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs shrink-0 border border-primary/25">
                   {index + 1}
                 </div>
-                
+
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold">
                   <div className="md:col-span-1">
                     <label className="block text-[9px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
@@ -344,7 +342,7 @@ export default function DesignQuizAdmin() {
                       className="w-full p-2.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all font-medium"
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <label className="block text-[9px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                       Deskripsi Singkat
@@ -381,7 +379,7 @@ export default function DesignQuizAdmin() {
       {/* TAB 2: MANAGEMEN PERTANYAAN */}
       {activeTab === "questions" && (
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm space-y-6 transition-colors duration-300">
-          
+
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30 p-4 rounded-xl text-xs text-amber-800 dark:text-amber-400 flex gap-3 leading-relaxed">
             <HelpCircle size={18} className="shrink-0 mt-0.5" />
             <div>
@@ -512,11 +510,10 @@ export default function DesignQuizAdmin() {
       {notification.show && (
         <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-right duration-350">
           <div
-            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-xs font-bold transition-all ${
-              notification.type === "success"
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-xs font-bold transition-all ${notification.type === "success"
                 ? "bg-green-50 dark:bg-green-950/25 border-green-200 dark:border-green-900/30 text-green-800 dark:text-green-400"
                 : "bg-red-50 dark:bg-red-950/25 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-400"
-            }`}
+              }`}
           >
             {notification.type === "success" ? (
               <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
