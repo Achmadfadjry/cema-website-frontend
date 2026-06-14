@@ -35,17 +35,32 @@ export default function AdminDashboardLayout({
 
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
-  // Sync theme
+  // Sync theme and desktop sidebar state
   useEffect(() => {
     const savedTheme = (localStorage.getItem("admin-theme") as "light" | "dark") || "light";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(savedTheme);
     if (savedTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
+
+    const savedSidebar = localStorage.getItem("admin-sidebar-open");
+    if (savedSidebar !== null) {
+      setIsDesktopSidebarOpen(savedSidebar === "true");
+    }
   }, []);
+
+  const toggleDesktopSidebar = () => {
+    setIsDesktopSidebarOpen((prev) => {
+      const newVal = !prev;
+      localStorage.setItem("admin-sidebar-open", String(newVal));
+      return newVal;
+    });
+  };
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -196,22 +211,35 @@ export default function AdminDashboardLayout({
 
   // 4. Authorized Main Layout
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex transition-colors duration-300">
+    <div className="h-screen w-full bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex overflow-hidden transition-colors duration-300">
       
       {/* SIDEBAR ON DESKTOP */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 shrink-0 sticky top-0 h-screen transition-colors duration-300">
-        <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200 dark:border-zinc-800">
-          <div className="bg-primary/10 p-2 rounded-lg">
-            <ShieldCheck size={20} className="text-primary" />
+      <aside
+        className={`hidden lg:flex flex-col bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 shrink-0 h-full transition-all duration-300 ${
+          isDesktopSidebarOpen ? "w-64" : "w-0 overflow-hidden border-r-0"
+        }`}
+      >
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-zinc-800">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="bg-primary/10 p-2 rounded-lg shrink-0">
+              <ShieldCheck size={20} className="text-primary" />
+            </div>
+            <div className="truncate">
+              <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-zinc-100 truncate">
+                Cema Design
+              </h1>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+                Admin Panel
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-zinc-100">
-              Cema Design
-            </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Admin Panel
-            </p>
-          </div>
+          <button
+            onClick={toggleDesktopSidebar}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer hidden lg:block"
+            title="Sembunyikan Sidebar"
+          >
+            <Menu size={18} />
+          </button>
         </div>
 
         {/* Sidebar Nav */}
@@ -361,16 +389,27 @@ export default function AdminDashboardLayout({
       )}
 
       {/* RIGHT SIDE MAIN WRAPPER */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* TOP HEADER */}
-        <header className="h-16 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-zinc-800/80 flex items-center justify-between px-6 sticky top-0 z-30 transition-colors duration-300">
+        <header className="h-16 shrink-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-zinc-800/80 flex items-center justify-between px-6 sticky top-0 z-30 transition-colors duration-300">
           <div className="flex items-center gap-3">
+            {/* Mobile burger button */}
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 lg:hidden cursor-pointer"
             >
               <Menu size={20} />
             </button>
+            {/* Desktop burger button (only visible when sidebar is closed) */}
+            {!isDesktopSidebarOpen && (
+              <button
+                onClick={toggleDesktopSidebar}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 hidden lg:block cursor-pointer"
+                title="Tampilkan Sidebar"
+              >
+                <Menu size={20} />
+              </button>
+            )}
             <h2 className="text-sm font-black text-slate-900 dark:text-zinc-100 hidden sm:block">
               {tabs.find((tab) => tab.activeCheck(pathname))?.label || "Admin Area"}
             </h2>
