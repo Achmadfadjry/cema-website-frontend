@@ -97,39 +97,39 @@ export default function ServicesPage() {
   if (!isMounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7]">
-      <section className="relative pt-48 pb-12 bg-white overflow-hidden">
+    <div className="min-h-screen bg-[#F7F7F7] dark:bg-zinc-900 transition-colors duration-300">
+      <section className="relative pt-48 pb-12 bg-white dark:bg-zinc-950 overflow-hidden transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
           <div className="inline-block mb-4 px-4 py-1 bg-[#8CC55A]/10 rounded-full text-[#8CC55A] text-sm font-medium">
             Layanan Kami
           </div>
-          <h1 className="text-[#333333] mb-4 font-bold text-4xl">
+          <h1 className="text-[#333333] dark:text-zinc-100 mb-4 font-bold text-4xl">
             Solusi Lengkap untuk Kebutuhan Desain & Konstruksi
           </h1>
-          <p className="text-[#868686] text-lg max-w-2xl mx-auto mb-10">
+          <p className="text-[#868686] dark:text-zinc-400 text-lg max-w-2xl mx-auto mb-10">
             Dari konsep hingga realisasi, kami menyediakan layanan profesional untuk mewujudkan ruang impian Anda
           </p>
 
-          <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] p-6 border border-gray-100">
+          <div className="max-w-3xl mx-auto bg-white dark:bg-zinc-900 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] p-6 border border-gray-100 dark:border-zinc-800">
             <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#868686]" size={20} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#868686] dark:text-zinc-500" size={20} />
               <Input
                 placeholder="Cari layanan yang Anda butuhkan..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 border-gray-200 focus:ring-[#8CC55A] rounded-lg"
+                className="pl-12 h-12 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-gray-800 dark:text-zinc-100 focus:ring-[#8CC55A] rounded-lg"
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm text-[#868686] flex items-center gap-2">
+              <span className="text-sm text-[#868686] dark:text-zinc-400 flex items-center gap-2">
                 <Package size={16} /> Kategori:
               </span>
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-5 py-1.5 rounded-lg text-sm transition-all ${
-                    selectedCategory === cat ? "bg-[#8CC55A] text-white" : "bg-gray-100 text-[#868686] hover:bg-gray-200"
+                  className={`px-5 py-1.5 rounded-lg text-sm transition-all cursor-pointer ${
+                    selectedCategory === cat ? "bg-[#8CC55A] text-white" : "bg-gray-100 dark:bg-zinc-850 text-[#868686] dark:text-zinc-350 hover:bg-gray-200 dark:hover:bg-zinc-700"
                   }`}
                 >
                   {cat}
@@ -162,10 +162,10 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-zinc-950 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-[#333333] text-3xl font-bold mb-4">Mengapa Memilih Cema Design</h2>
-          <p className="text-[#868686] mb-12">Kami berkomitmen memberikan layanan terbaik dengan standar profesional tinggi</p>
+          <h2 className="text-[#333333] dark:text-zinc-100 text-3xl font-bold mb-4">Mengapa Memilih Cema Design</h2>
+          <p className="text-[#868686] dark:text-zinc-400 mb-12">Kami berkomitmen memberikan layanan terbaik dengan standar profesional tinggi</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           </div>
         </div>
@@ -192,20 +192,20 @@ function ServiceCard({ service, index, icon: Icon, color, onNavigate }: any) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
-      className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col"
+      className="bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100 dark:border-zinc-800 flex flex-col"
     >
       <div className="relative h-60">
         <ImageWithFallback src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
-        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded text-xs font-bold text-[#8CC55A] uppercase tracking-wider">
+        <div className="absolute top-4 left-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur px-3 py-1 rounded text-xs font-bold text-[#8CC55A] uppercase tracking-wider">
           {service.category}
         </div>
-        <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md">
+        <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-md">
           <Icon size={20} style={{ color }} />
         </div>
       </div>
       <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-bold text-[#333333] mb-2">{service.name}</h3>
-        <p className="text-[#868686] text-sm line-clamp-2 mb-4 flex-grow">{service.description}</p>
+        <h3 className="text-xl font-bold text-[#333333] dark:text-zinc-150 mb-2">{service.name}</h3>
+        <p className="text-[#868686] dark:text-zinc-400 text-sm line-clamp-2 mb-4 flex-grow">{service.description}</p>
         <div className="text-[#8CC55A] font-bold text-lg mb-6">Rp {service.price}</div>
         <button
           onClick={() => onNavigate(service.name)}

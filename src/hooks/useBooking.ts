@@ -138,11 +138,6 @@ export function useBooking(): UseBookingState & UseBookingActions {
    * Submit booking
    */
   const submitBooking = useCallback(async (formData: BookingFormData): Promise<boolean> => {
-    if (!isAuthenticated) {
-      setSubmitError("Silakan login terlebih dahulu");
-      return false;
-    }
-
     setIsSubmitting(true);
     setSubmitError(null);
     

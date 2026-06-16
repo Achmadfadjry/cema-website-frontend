@@ -19,33 +19,32 @@ export function Toolbar({
     projectCount
 }: ToolbarProps) {
     return (
-        <div className="flex-none bg-white border-b border-gray-100 px-6 py-4">
-            <div className="max-w-7xl mx-auto">
+        <div className="flex-none px-6 py-6 max-w-7xl w-full mx-auto">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 shadow-sm rounded-2xl p-4 md:p-5">
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                     {/* Search Input */}
-                    <div className="relative flex-1 max-w-md">
-                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <div className="relative flex-1 max-w-md group">
+                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 group-focus-within:text-[#8CC540] transition-colors" />
                         <input
                             type="text"
                             placeholder="Cari proyek..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8CC540]/50 focus:border-[#8CC540] transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white/80 dark:bg-zinc-950/80 hover:bg-white dark:hover:bg-zinc-950 focus:bg-white dark:focus:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 focus:border-[#8CC540] dark:focus:border-[#8CC540] rounded-xl text-xs md:text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-[#8CC540]/8 transition-all duration-300 placeholder-slate-400 dark:placeholder-zinc-500 text-slate-700 dark:text-zinc-100 shadow-sm"
                         />
                     </div>
 
                     {/* Filter Tabs */}
                     <div className="flex items-center gap-2">
-                        <Filter size={16} className="text-gray-400" />
-                        <div className="flex bg-gray-100 rounded-xl p-1">
+                        <div className="flex bg-slate-200/40 dark:bg-zinc-950/40 border border-slate-200/20 dark:border-zinc-800/20 rounded-xl p-1 shadow-inner">
                             {(['all', 'active', 'completed'] as const).map((filter) => (
                                 <button
                                     key={filter}
                                     onClick={() => setStatusFilter(filter)}
-                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                                    className={`px-4 py-1.5 text-xs md:text-sm font-extrabold rounded-lg transition-all duration-300 ${
                                         statusFilter === filter 
-                                            ? 'bg-white text-slate-800 shadow-sm' 
-                                            : 'text-gray-500 hover:text-gray-700'
+                                            ? 'bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 shadow-sm border border-slate-100 dark:border-zinc-800' 
+                                            : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-white/20 dark:hover:bg-zinc-800/20'
                                     }`}
                                 >
                                     {filter === 'all' ? 'Semua' : filter === 'active' ? 'Aktif' : 'Selesai'}
@@ -55,15 +54,12 @@ export function Toolbar({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 lg:ml-auto">
-                        <span className="text-sm text-gray-500">{projectCount} proyek</span>
+                    <div className="flex items-center gap-4 lg:ml-auto justify-between lg:justify-end">
+                        <span className="text-xs md:text-sm font-extrabold text-slate-400 dark:text-zinc-500 bg-white/80 dark:bg-zinc-950/80 border border-slate-200/50 dark:border-zinc-800 rounded-xl px-3 py-1.5 shadow-sm">{projectCount} proyek</span>
                         <button 
-                            className="inline-flex items-center gap-2 px-5 py-2.5 text-white font-medium rounded-xl transition-colors shadow-sm hover:shadow-md"
-                            style={{ backgroundColor: BRAND.primary }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = BRAND.primaryHover}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = BRAND.primary}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 text-white text-xs md:text-sm font-extrabold rounded-xl transition-all duration-300 shadow-md shadow-lime-500/15 hover:shadow-lime-500/25 bg-gradient-to-r from-[#8CC540] to-[#76a536] hover:from-[#76a536] hover:to-[#5b8e34] active:scale-95 cursor-pointer"
                         >
-                            <Plus size={18} />
+                            <Plus size={16} />
                             <span>New Project</span>
                         </button>
                     </div>

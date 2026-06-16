@@ -72,28 +72,28 @@ export function CustomCalendar({ selectedDate, onSelectDate }: CustomCalendarPro
   const isDisabled = (date: Date) => date < minDate;
 
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+    <div className="bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 rounded-xl p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={handlePrevMonth}
-          className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+          className="p-2 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
         >
-          <ChevronLeft size={20} className="text-slate-600" />
+          <ChevronLeft size={20} className="text-slate-600 dark:text-zinc-400" />
         </button>
-        <h3 className="font-bold text-slate-900 capitalize">{monthYear}</h3>
+        <h3 className="font-bold text-slate-900 dark:text-zinc-100 capitalize">{monthYear}</h3>
         <button
           onClick={handleNextMonth}
-          className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+          className="p-2 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
         >
-          <ChevronRight size={20} className="text-slate-600" />
+          <ChevronRight size={20} className="text-slate-600 dark:text-zinc-400" />
         </button>
       </div>
 
       {/* Day labels */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
-          <div key={day} className="text-center text-xs font-bold text-slate-500 py-2">
+          <div key={day} className="text-center text-xs font-bold text-slate-500 dark:text-zinc-400 py-2">
             {day}
           </div>
         ))}
@@ -118,8 +118,8 @@ export function CustomCalendar({ selectedDate, onSelectDate }: CustomCalendarPro
               className={`
                 h-10 w-10 rounded-full flex flex-col items-center justify-center text-sm font-medium transition-all relative
                 ${selected ? 'bg-[#8CC540] text-white shadow-md' : ''}
-                ${!selected && !disabled ? 'hover:bg-slate-200 text-slate-900' : ''}
-                ${disabled ? 'text-slate-300 cursor-not-allowed' : 'cursor-pointer'}
+                ${!selected && !disabled ? 'hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-900 dark:text-zinc-100' : ''}
+                ${disabled ? 'text-slate-300 dark:text-zinc-600 cursor-not-allowed' : 'cursor-pointer'}
               `}
             >
               <span>{date.getDate()}</span>

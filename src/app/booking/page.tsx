@@ -89,18 +89,39 @@ export default function BookingPage() {
   };
 
   const handleAuth = async () => {
+    let success = false;
     if (showLogin) {
-      return await handleLogin({
+      success = await handleLogin({
         email: formData.guestEmail,
         password: formData.guestPassword,
       });
     } else {
-      return await handleRegister({
+      success = await handleRegister({
         name: formData.guestName,
         email: formData.guestEmail,
         password: formData.guestPassword,
+        phoneNumber: formData.guestPhone,
       });
     }
+
+    if (success) {
+      const bookingSuccess = await submitBooking({
+        serviceId: formData.serviceId,
+        serviceTitle: formData.serviceTitle,
+        servicePrice: formData.servicePrice,
+        projectDescription: formData.projectDescription,
+        date: formData.date,
+        time: formData.time,
+        method: formData.method as "online" | "offline",
+        clientName: formData.guestName || "Client",
+        clientPhone: formData.guestPhone,
+      });
+
+      if (bookingSuccess) {
+        window.location.href = "/dashboard/client/my-project";
+      }
+    }
+    return success;
   };
 
   const handleFinalSubmit = async () => {
@@ -130,7 +151,7 @@ export default function BookingPage() {
         onConfirm={() => (window.location.href = "/")}
       />
 
-      <div className="h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-white">
+      <div className="h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-white dark:bg-zinc-950">
         
         {/* --- LEFT PANEL --- */}
         <div className="lg:w-[40%] bg-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden lg:h-screen order-1 lg:order-none">
@@ -152,22 +173,30 @@ export default function BookingPage() {
         </div>
 
         {/* --- RIGHT PANEL --- */}
-        <div ref={scrollRef} className="lg:w-[60%] h-auto lg:h-screen overflow-y-auto bg-white order-2 lg:order-none relative">
+        <div ref={scrollRef} className="lg:w-[60%] h-auto lg:h-screen overflow-y-auto bg-white dark:bg-zinc-950 order-2 lg:order-none relative">
           
           {/* Top Navigation */}
           <div className="absolute top-8 right-8 flex items-center gap-4 z-40">
+            {isLoggedIn && (
+              <a 
+                href="/dashboard/client/my-project"
+                className="flex items-center gap-2 text-sm text-[#8CC540] hover:text-[#7AB84A] border border-[#8CC540]/30 hover:border-[#8CC540] px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 shadow-sm hover:shadow-md transition-all font-bold"
+              >
+                My Projects
+              </a>
+            )}
             <a 
               href="https://wa.me/62123456789" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#8CC540] transition-colors"
+              className="flex items-center gap-2 text-sm text-slate-600 dark:text-zinc-400 hover:text-[#8CC540] transition-colors"
             >
               <MessageCircle size={18} />
               <span className="hidden sm:inline font-medium">Need Help?</span>
             </a>
             <button
               onClick={handleExit}
-              className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-655 dark:hover:text-zinc-200 transition-all cursor-pointer"
               title="Batal"
             >
               <X size={20} />
@@ -178,7 +207,7 @@ export default function BookingPage() {
           <div className="max-w-2xl mx-auto p-6 lg:p-12 min-h-full flex flex-col justify-center">
             <AnimatePresence mode="wait">
               {bookingSuccess ? (
-                <SuccessState displayName={displayName} />
+                <SuccessState displayName={displayName} isLoggedIn={isLoggedIn} />
               ) : (
                 <motion.div
                   key={step}
@@ -268,12 +297,12 @@ function StepHeader({ step }: { step: number }) {
   return (
     <div className="mb-8">
       <p className="text-[#8CC540] font-bold text-xs uppercase mb-1">Step {step} of 4</p>
-      <h2 className="text-2xl lg:text-3xl font-bold text-slate-900">{titles[step]}</h2>
+      <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-zinc-100">{titles[step]}</h2>
     </div>
   );
 }
 
-function SuccessState({ displayName }: { displayName: string }) {
+function SuccessState({ displayName, isLoggedIn }: { displayName: string; isLoggedIn: boolean }) {
   return (
     <motion.div
       key="success"
@@ -281,20 +310,30 @@ function SuccessState({ displayName }: { displayName: string }) {
       animate={{ opacity: 1, scale: 1 }}
       className="text-center py-12"
     >
-      <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-[#8CC540]">
+      <div className="w-24 h-24 bg-green-100 dark:bg-green-950/20 rounded-full flex items-center justify-center mx-auto mb-6 text-[#8CC540]">
         <CheckCircle2 size={48} />
       </div>
-      <h2 className="text-3xl font-bold text-slate-900 mb-2">Booking Berhasil!</h2>
-      <p className="text-slate-500 mb-8 max-w-md mx-auto">
+      <h2 className="text-3xl font-bold text-slate-900 dark:text-zinc-100 mb-2">Booking Berhasil!</h2>
+      <p className="text-slate-500 dark:text-zinc-400 mb-8 max-w-md mx-auto">
         Terima kasih <strong>{displayName}</strong>. Kami telah menerima jadwal Anda. 
         Tim kami akan segera menghubungi via WhatsApp untuk konfirmasi lebih lanjut.
       </p>
-      <Button 
-        onClick={() => (window.location.href = "/")} 
-        className="bg-slate-900 text-white hover:bg-slate-800 px-8 py-6 rounded-xl"
-      >
-        Kembali ke Beranda
-      </Button>
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Button 
+          onClick={() => (window.location.href = "/")} 
+          className="bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 px-8 py-6 rounded-xl border border-slate-200 dark:border-zinc-800 cursor-pointer"
+        >
+          Kembali ke Beranda
+        </Button>
+        {isLoggedIn && (
+          <Button 
+            onClick={() => (window.location.href = "/dashboard/client/my-project")} 
+            className="bg-[#8CC540] text-white hover:bg-[#7AB84A] px-8 py-6 rounded-xl shadow-lg shadow-[#8CC540]/20 font-bold"
+          >
+            Ke My Projects
+          </Button>
+        )}
+      </div>
     </motion.div>
   );
 }

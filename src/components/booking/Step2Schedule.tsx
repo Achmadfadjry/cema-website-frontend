@@ -28,7 +28,7 @@ export function Step2Schedule({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left: Calendar */}
         <div className="space-y-4">
-          <label className="flex items-center gap-2 text-sm font-bold text-slate-700">
+          <label className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-zinc-300">
             <CalendarIcon size={18} className="text-[#8CC540]"/> Pilih Tanggal
           </label>
           
@@ -39,18 +39,18 @@ export function Step2Schedule({
             />
           </div>
           
-          <p className="text-xs text-slate-400">*Minimal pemesanan H+3 dari hari ini.</p>
+          <p className="text-xs text-slate-400 dark:text-zinc-500">*Minimal pemesanan H+3 dari hari ini.</p>
         </div>
 
         {/* Right: Time Slots */}
         <div className="space-y-4">
-          <label className="flex items-center gap-2 text-sm font-bold text-slate-700">
+          <label className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-zinc-300">
             <Clock size={18} className="text-[#8CC540]"/> Pilih Jam
           </label>
           
           {formData.date ? (
             <div className="space-y-3">
-              <p className="text-sm text-slate-600 font-medium">
+              <p className="text-sm text-slate-600 dark:text-zinc-400 font-medium">
                 Ketersediaan pada <span className="text-[#8CC540]">{formatDate(formData.date)}</span>
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -59,10 +59,10 @@ export function Step2Schedule({
                     key={time}
                     onClick={() => onTimeSelect(time)}
                     className={`
-                      py-3 px-4 rounded-lg text-sm font-bold border transition-all
+                      py-3 px-4 rounded-lg text-sm font-bold border transition-all cursor-pointer
                       ${formData.time === time 
                         ? 'bg-[#8CC540] border-[#8CC540] text-white shadow-md' 
-                        : 'bg-white border-slate-200 text-slate-600 hover:border-[#8CC540]'
+                        : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-300 hover:border-[#8CC540]'
                       }
                     `}
                   >
@@ -72,18 +72,21 @@ export function Step2Schedule({
               </div>
             </div>
           ) : (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center">
-              <CalendarIcon size={32} className="mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-500">Pilih tanggal terlebih dahulu</p>
+            <div className="bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 text-center">
+              <CalendarIcon size={32} className="mx-auto text-slate-300 dark:text-zinc-650 mb-2" />
+              <p className="text-sm text-slate-500 dark:text-zinc-400">Pilih tanggal terlebih dahulu</p>
             </div>
           )}
         </div>
       </div>
 
       <div className="flex gap-4">
-        <Button variant="outline" onClick={onBack} className="h-14 px-8 border-slate-200 text-slate-600 hover:bg-slate-50">
+        <button
+          onClick={onBack}
+          className="h-14 px-8 border border-slate-200 dark:border-zinc-800 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors font-medium bg-white dark:bg-zinc-900 cursor-pointer"
+        >
           Kembali
-        </Button>
+        </button>
         <Button 
           onClick={onNext} 
           disabled={!formData.date || !formData.time}

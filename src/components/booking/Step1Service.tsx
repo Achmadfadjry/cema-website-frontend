@@ -51,15 +51,15 @@ export function Step1Service({
                 cursor-pointer p-6 rounded-2xl border-2 transition-all duration-200 group
                 ${formData.serviceId === service._id 
                   ? 'border-[#8CC540] bg-[#8CC540]/5' 
-                  : 'border-slate-100 hover:border-slate-200 hover:shadow-md'
+                  : 'border-slate-100 dark:border-zinc-800 hover:border-slate-200 dark:hover:border-zinc-700 hover:shadow-md'
                 }
               `}
             >
-              <div className={`mb-4 w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${formData.serviceId === service._id ? 'bg-[#8CC540] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#8CC540]/20'}`}>
+              <div className={`mb-4 w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${formData.serviceId === service._id ? 'bg-[#8CC540] text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 group-hover:bg-[#8CC540]/20'}`}>
                 {getServiceIcon(service.category || '')}
               </div>
-              <h3 className="font-bold text-lg text-slate-900">{service.title}</h3>
-              <p className="text-sm text-slate-500 mt-1 mb-3">{service.description}</p>
+              <h3 className="font-bold text-lg text-slate-900 dark:text-zinc-100">{service.title}</h3>
+              <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1 mb-3">{service.description}</p>
               <p className="text-xs font-bold text-[#8CC540] uppercase tracking-wide">{service.price}</p>
             </div>
           ))}
@@ -70,16 +70,16 @@ export function Step1Service({
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="pt-6 border-t border-slate-100"
+          className="pt-6 border-t border-slate-100 dark:border-zinc-800"
         >
-          <label className="block text-sm font-bold text-slate-700 mb-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-zinc-300 mb-2">
             Ceritakan gambaran proyek Anda
           </label>
           <Textarea 
             value={formData.projectDescription}
             onChange={(e) => onDescriptionChange(e.target.value)}
             placeholder="Contoh: Saya ingin renovasi ruang tamu gaya Japandi dengan budget..."
-            className="min-h-[100px] bg-slate-50 border-slate-200 focus:border-[#8CC540] focus:ring-[#8CC540] text-slate-900"
+            className="min-h-[100px] bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 focus:border-[#8CC540] focus:ring-[#8CC540] text-slate-900 dark:text-zinc-100"
           />
         </motion.div>
       )}
