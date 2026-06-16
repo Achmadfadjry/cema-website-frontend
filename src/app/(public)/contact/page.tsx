@@ -92,7 +92,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="relative min-h-screen pt-32 pb-16 lg:pt-40 lg:pb-24 bg-gradient-to-b from-gray-50 via-white to-gray-50 overflow-hidden">
+    <main className="relative min-h-screen pt-32 pb-16 lg:pt-40 lg:pb-24 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 overflow-hidden">
       {/* Toast Alert */}
       <AnimatePresence>
         {toast.show && (
@@ -100,11 +100,10 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: -50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`fixed top-28 right-6 z-[9999] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl border text-white font-medium ${
-              toast.type === "success"
-                ? "bg-emerald-600 border-emerald-500"
-                : "bg-rose-600 border-rose-500"
-            }`}
+            className={`fixed top-28 right-6 z-[9999] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl border text-white font-medium ${toast.type === "success"
+              ? "bg-emerald-600 border-emerald-500"
+              : "bg-rose-600 border-rose-500"
+              }`}
           >
             {toast.type === "success" ? (
               <CheckCircle className="w-5 h-5" />
@@ -147,10 +146,10 @@ export default function ContactPage() {
           <span className="inline-block px-4 py-1.5 bg-[#8cc55a]/10 text-[#5b8e34] font-semibold text-sm rounded-full mb-4 border border-[#8cc55a]/20">
             Hubungi Kami
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-zinc-100 tracking-tight mb-4">
             Hubungi Kami
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-zinc-400 max-w-2xl mx-auto">
             Ada pertanyaan atau saran? Silakan kirim pesan kepada kami!
           </p>
         </motion.div>
@@ -168,7 +167,7 @@ export default function ContactPage() {
             <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-xl pointer-events-none" />
             <div className="absolute top-10 right-10 w-24 h-24 bg-white/5 rounded-full blur-md pointer-events-none" />
             <div className="absolute bottom-24 right-24 w-12 h-12 bg-white/15 rounded-full pointer-events-none" />
-            
+
             {/* Extra background ornament if exists */}
             <div className="absolute -bottom-12 -right-12 w-48 h-48 pointer-events-none opacity-25 mix-blend-overlay">
               <img
@@ -198,7 +197,7 @@ export default function ContactPage() {
                   <Phone className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-sm lg:text-base font-medium text-white/90 group-hover:text-white transition-colors">
-                  +1012 3456 789
+                  +62 xxx xxxx xxxx
                 </span>
               </a>
 
@@ -210,7 +209,7 @@ export default function ContactPage() {
                   <Mail className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-sm lg:text-base font-medium text-white/90 group-hover:text-white transition-colors">
-                  demo@gmail.com
+                  info@ciptamaharupa.com
                 </span>
               </a>
 
@@ -219,8 +218,8 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-sm lg:text-base font-light text-white/90 leading-relaxed">
-                  132 Dartmouth Street Boston,
-                  <br /> Massachusetts 02156 United States
+                  Jakarta, Indonesia
+
                 </span>
               </div>
             </div>
@@ -262,13 +261,13 @@ export default function ContactPage() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="lg:col-span-7 bg-white rounded-3xl p-8 lg:p-10 shadow-xl border border-gray-100 relative z-10"
+            className="lg:col-span-7 bg-white dark:bg-zinc-900 rounded-3xl p-8 lg:p-10 shadow-xl border border-gray-100 dark:border-zinc-800 relative z-10"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Row 1: First Name & Last Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-gray-700 mb-2">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-zinc-355 mb-2">
                     Nama Depan
                   </label>
                   <input
@@ -278,11 +277,11 @@ export default function ContactPage() {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 placeholder-gray-400 bg-gray-50/50"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 bg-gray-50/50 dark:bg-zinc-950"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-gray-700 mb-2">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-zinc-355 mb-2">
                     Nama Belakang
                   </label>
                   <input
@@ -292,7 +291,7 @@ export default function ContactPage() {
                     value={formData.lastName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 placeholder-gray-400 bg-gray-50/50"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 bg-gray-50/50 dark:bg-zinc-950"
                   />
                 </div>
               </div>
@@ -300,7 +299,7 @@ export default function ContactPage() {
               {/* Row 2: Email & Phone Number */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-gray-700 mb-2">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-zinc-355 mb-2">
                     Email
                   </label>
                   <input
@@ -310,11 +309,11 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 placeholder-gray-400 bg-gray-50/50"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 bg-gray-50/50 dark:bg-zinc-950"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-gray-700 mb-2">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-zinc-355 mb-2">
                     Nomor Telepon
                   </label>
                   <input
@@ -323,14 +322,14 @@ export default function ContactPage() {
                     placeholder="+1012 3456 789"
                     value={formData.phoneNumber}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 placeholder-gray-400 bg-gray-50/50"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 bg-gray-50/50 dark:bg-zinc-950"
                   />
                 </div>
               </div>
 
               {/* Subject Options (Chips) */}
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-gray-700 mb-3">
+                <label className="text-sm font-semibold text-gray-700 dark:text-zinc-355 mb-3">
                   Pilih Subjek?
                 </label>
                 <div className="flex flex-wrap gap-2.5">
@@ -347,11 +346,10 @@ export default function ContactPage() {
                     return (
                       <label
                         key={sub}
-                        className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer select-none flex items-center gap-2 ${
-                          isSelected
-                            ? "border-[#8cc55a] bg-[#8cc55a]/10 text-[#5b8e34] shadow-sm font-semibold"
-                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
+                        className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer select-none flex items-center gap-2 ${isSelected
+                          ? "border-[#8cc55a] bg-[#8cc55a]/10 dark:bg-[#8cc55a]/20 text-[#5b8e34] dark:text-[#8cc55a] shadow-sm font-semibold"
+                          : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-zinc-400 hover:border-gray-300 hover:bg-gray-50"
+                          }`}
                       >
                         <input
                           type="radio"
@@ -370,7 +368,7 @@ export default function ContactPage() {
 
               {/* Message Area */}
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-gray-700 mb-2">
+                <label className="text-sm font-semibold text-gray-700 dark:text-zinc-355 mb-2">
                   Pesan
                 </label>
                 <textarea
@@ -379,7 +377,7 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 placeholder-gray-400 bg-gray-50/50 resize-none min-h-[120px]"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#8cc55a]/25 focus:border-[#8cc55a] transition-all duration-200 outline-none text-gray-800 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 bg-gray-50/50 dark:bg-zinc-950 resize-none min-h-[120px]"
                 ></textarea>
               </div>
 

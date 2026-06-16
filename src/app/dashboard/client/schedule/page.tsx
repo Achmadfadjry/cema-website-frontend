@@ -50,11 +50,11 @@ export default async function SchedulePage() {
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
             {/* Header - Mobile Only (Optional context) */}
             <div className="lg:hidden mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 flex items-center gap-2">
                     <Calendar className="text-[#8CC540]" size={24} />
                     Agenda Saya
                 </h2>
-                <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                <span className="text-sm font-medium text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
                     {activeUpcoming.length}
                 </span>
             </div>
@@ -65,7 +65,7 @@ export default async function SchedulePage() {
                     {nextMeeting ? (
                         <>
                             <div className="mb-8">
-                                <h2 className="text-lg font-bold text-gray-900 mb-4 hidden lg:block">Pertemuan Berikutnya</h2>
+                                <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100 mb-4 hidden lg:block">Pertemuan Berikutnya</h2>
                                 <NextMeetingCard schedule={nextMeeting} />
                             </div>
                             
@@ -75,10 +75,10 @@ export default async function SchedulePage() {
                         </>
                     ) : (
                         // Empty State if no future meetings at all
-                        <div className="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                            <Calendar className="mx-auto text-gray-300 mb-4" size={64} />
-                            <h3 className="text-lg font-bold text-gray-900">Tidak Ada Jadwal Mendatang</h3>
-                            <p className="text-gray-500 max-w-sm mx-auto mt-2 mb-8">
+                        <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 border border-dashed border-gray-200 dark:border-zinc-800 rounded-xl">
+                            <Calendar className="mx-auto text-gray-300 dark:text-zinc-700 mb-4" size={64} />
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-100">Tidak Ada Jadwal Mendatang</h3>
+                            <p className="text-gray-500 dark:text-zinc-400 max-w-sm mx-auto mt-2 mb-8">
                                 Saat ini Anda tidak memiliki jadwal pertemuan aktif. Hubungi manajer proyek Anda untuk menjadwalkan konsultasi.
                             </p>
                             

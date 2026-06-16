@@ -54,28 +54,28 @@ export function Step4Confirmation({
   return (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+      <div className="bg-slate-50 dark:bg-zinc-900/50 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-4">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-xs uppercase text-slate-500 font-bold mb-1">Service</p>
-            <p className="font-bold text-slate-900">{formData.serviceTitle}</p>
+            <p className="text-xs uppercase text-slate-500 dark:text-zinc-400 font-bold mb-1">Service</p>
+            <p className="font-bold text-slate-900 dark:text-zinc-100">{formData.serviceTitle}</p>
           </div>
           <button onClick={() => onEditStep(1)} className="text-xs text-[#8CC540] font-bold hover:underline">Edit</button>
         </div>
-        <div className="h-px bg-slate-200"></div>
+        <div className="h-px bg-slate-200 dark:bg-zinc-800"></div>
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-xs uppercase text-slate-500 font-bold mb-1">Jadwal</p>
-            <p className="font-bold text-slate-900">{formatDate(formData.date)}, {formData.time}</p>
+            <p className="text-xs uppercase text-slate-500 dark:text-zinc-400 font-bold mb-1">Jadwal</p>
+            <p className="font-bold text-slate-900 dark:text-zinc-100">{formatDate(formData.date)}, {formData.time}</p>
           </div>
           <button onClick={() => onEditStep(2)} className="text-xs text-[#8CC540] font-bold hover:underline">Edit</button>
         </div>
-        <div className="h-px bg-slate-200"></div>
+        <div className="h-px bg-slate-200 dark:bg-zinc-800"></div>
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-xs uppercase text-slate-500 font-bold mb-1">Kontak</p>
-            <p className="font-bold text-slate-900">{displayName} ({displayPhone})</p>
-            <p className="text-sm text-slate-500 mt-1">{formData.method === 'online' ? 'Online Meeting' : 'Offline Visit'}</p>
+            <p className="text-xs uppercase text-slate-500 dark:text-zinc-400 font-bold mb-1">Kontak</p>
+            <p className="font-bold text-slate-900 dark:text-zinc-100">{displayName} ({displayPhone})</p>
+            <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">{formData.method === 'online' ? 'Online Meeting' : 'Offline Visit'}</p>
           </div>
           <button onClick={() => onEditStep(3)} className="text-xs text-[#8CC540] font-bold hover:underline">Edit</button>
         </div>
@@ -89,12 +89,12 @@ export function Step4Confirmation({
             animate={{ opacity: 1 }}
             className="space-y-4"
           >
-            <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl border border-green-200 text-green-800">
+            <div className="flex items-center gap-3 bg-green-50 dark:bg-green-950/20 p-4 rounded-xl border border-green-200 dark:border-green-900 text-green-800 dark:text-green-400">
               <CheckCircle2 size={20} />
               <span className="text-sm font-medium">Anda sudah login sebagai <strong>{userData?.name}</strong></span>
             </div>
             {submitError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg text-red-600 dark:text-red-400 text-sm">
                 {submitError}
               </div>
             )}
@@ -114,46 +114,46 @@ export function Step4Confirmation({
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white border-2 border-slate-100 p-6 rounded-2xl shadow-sm"
+            className="bg-white dark:bg-zinc-900/30 border-2 border-slate-100 dark:border-zinc-800 p-6 rounded-2xl shadow-sm"
           >
             <div className="mb-6">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
                 <Lock size={18} className="text-[#8CC540]"/>
                 {showLogin ? "Login untuk Melanjutkan" : "Buat Akun untuk Memantau Proyek"}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-zinc-400">
                 {showLogin ? "Masuk dengan akun yang sudah ada." : "Daftar agar Anda dapat melacak progress proyek Anda."}
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Email</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Email</label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3 top-3.5 text-slate-400" />
+                  <Mail size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-zinc-500" />
                   <Input 
                     value={formData.guestEmail}
                     onChange={(e) => onEmailChange(e.target.value)}
                     placeholder="email@example.com" 
-                    className="pl-10 h-11 focus:ring-[#8CC540]" 
+                    className="pl-10 h-11 border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 focus:ring-[#8CC540]" 
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Password</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Password</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3 top-3.5 text-slate-400" />
+                  <Lock size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-zinc-500" />
                   <Input 
                     type="password" 
                     value={formData.guestPassword}
                     onChange={(e) => onPasswordChange(e.target.value)}
                     placeholder="••••••••" 
-                    className="pl-10 h-11 focus:ring-[#8CC540]" 
+                    className="pl-10 h-11 border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 focus:ring-[#8CC540]" 
                   />
                 </div>
               </div>
               {authError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg text-red-600 dark:text-red-400 text-sm">
                   {authError}
                 </div>
               )}
@@ -161,7 +161,7 @@ export function Step4Confirmation({
                 <Button 
                   onClick={onAuth}
                   disabled={!formData.guestEmail || !formData.guestPassword || isAuthenticating}
-                  className="w-full h-12 bg-slate-900 text-white hover:bg-slate-800 font-bold"
+                  className="w-full h-12 bg-slate-900 text-white hover:bg-slate-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-bold"
                 >
                   {isAuthenticating ? (
                     <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Memproses...</>
@@ -170,7 +170,7 @@ export function Step4Confirmation({
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-center text-slate-500 mt-4">
+              <p className="text-xs text-center text-slate-500 dark:text-zinc-400 mt-4">
                 {showLogin ? "Belum punya akun? " : "Sudah punya akun? "}
                 <button 
                   onClick={onToggleLogin}

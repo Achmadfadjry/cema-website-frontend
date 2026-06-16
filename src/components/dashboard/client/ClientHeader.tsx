@@ -26,13 +26,13 @@ export function ClientHeader({
   onLogout,
 }: ClientHeaderProps) {
   return (
-    <header className="bg-white border-b border-gray-200 w-full">
+    <header className="bg-transparent w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left Side: Logo + Divider + User Info */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             {/* Company Logo (= Home Button) */}
-            <Link href="/" className="hover:opacity-80 transition-opacity">
+            <Link href="/" className="hover:opacity-95 hover:scale-[1.03] active:scale-95 transition-all duration-300">
               <ImageWithFallback
                 src="/images/Cema_Logo.png"
                 alt="CEMA Logo"
@@ -43,11 +43,11 @@ export function ClientHeader({
             </Link>
 
             {/* Vertical Divider */}
-            <div className="h-8 w-px bg-gray-200" />
+            <div className="h-8 w-px bg-slate-200/60 dark:bg-zinc-800" />
 
             {/* User Profile */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#00BCD4] text-white font-semibold text-sm">
+            <div className="flex items-center gap-3.5">
+              <div className="relative flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-tr from-[#8CC540] to-lime-500 text-white font-black text-sm shadow-md shadow-lime-500/20 ring-2 ring-lime-400 ring-offset-2 dark:ring-offset-zinc-950 overflow-hidden shrink-0">
                 {profilePicture ? (
                   <Image
                     width={320}
@@ -60,26 +60,28 @@ export function ClientHeader({
                   getInitials(userName)
                 )}
               </div>
-              <div>
-                <h1 className="text-base font-semibold text-slate-800">
+              <div className="hidden sm:block">
+                <h1 className="text-sm font-extrabold text-slate-800 dark:text-zinc-100 tracking-tight leading-tight">
                   Welcome, {userName}
                 </h1>
-                <p className="text-xs text-slate-500">Client Dashboard</p>
+                <p className="text-[10px] font-black text-[#8CC540] uppercase tracking-widest mt-0.5">
+                  Client Dashboard
+                </p>
               </div>
             </div>
           </div>
 
           {/* Right Side: Info + Logout */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-500 hidden sm:block">
-              Track your projects
+          <div className="flex items-center gap-5">
+            <span className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase tracking-widest hidden md:block">
+              Project Hub
             </span>
             <button
-              className="flex items-center gap-2 bg-gray-100 hover:bg-red-50 text-slate-600 hover:text-red-600 px-3 py-1.5 rounded-lg transition-all text-xs font-medium"
+              className="flex items-center gap-1.5 bg-slate-100/40 hover:bg-rose-50 dark:bg-zinc-900/40 dark:hover:bg-rose-950/20 border border-slate-200 dark:border-zinc-800 hover:border-rose-200 dark:hover:border-rose-900/40 text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-450 px-3.5 py-1.5 rounded-xl transition-all duration-300 text-xs font-bold shadow-sm hover:shadow active:scale-95 cursor-pointer"
               onClick={onLogout}
             >
-              <LogOut size={14} />
-              Logout
+              <LogOut size={13} />
+              <span>Logout</span>
             </button>
           </div>
         </div>

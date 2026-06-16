@@ -51,22 +51,22 @@ export function MiniCalendar({ activeDates }: MiniCalendarProps) {
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-100 dark:border-zinc-800 shadow-sm p-6 sticky top-24">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-gray-900 capitalize">{monthName}</h3>
-                <div className="flex gap-1">
-                    <button onClick={handlePrev} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-                        <ChevronLeft size={20} />
+                <h3 className="font-bold text-slate-800 dark:text-zinc-100 capitalize text-sm tracking-tight">{monthName}</h3>
+                <div className="flex gap-1.5">
+                    <button onClick={handlePrev} className="p-1.5 hover:bg-slate-50 dark:hover:bg-zinc-800 hover:text-slate-800 dark:hover:text-zinc-200 rounded-lg text-slate-400 dark:text-zinc-500 transition-all border border-slate-100 dark:border-zinc-800 hover:border-slate-200 dark:hover:border-zinc-705 shadow-sm cursor-pointer">
+                        <ChevronLeft size={16} />
                     </button>
-                    <button onClick={handleNext} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-                        <ChevronRight size={20} />
+                    <button onClick={handleNext} className="p-1.5 hover:bg-slate-50 dark:hover:bg-zinc-800 hover:text-slate-800 dark:hover:text-zinc-200 rounded-lg text-slate-400 dark:text-zinc-500 transition-all border border-slate-100 dark:border-zinc-800 hover:border-slate-200 dark:hover:border-zinc-705 shadow-sm cursor-pointer">
+                        <ChevronRight size={16} />
                     </button>
                 </div>
             </div>
 
             <div className="grid grid-cols-7 gap-y-4 gap-x-1 text-center mb-2">
                 {['M', 'S', 'S', 'R', 'K', 'J', 'S'].map((d, i) => (
-                    <span key={i} className="text-xs font-semibold text-gray-400">{d}</span>
+                    <span key={i} className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">{d}</span>
                 ))}
             </div>
 
@@ -76,16 +76,16 @@ export function MiniCalendar({ activeDates }: MiniCalendarProps) {
                         {day ? (
                             <>
                                 <span className={`
-                                    w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium transition-all
+                                    w-8 h-8 flex items-center justify-center rounded-xl text-xs font-bold transition-all duration-300
                                     ${isToday(day) 
                                         ? 'bg-[#8CC540] text-white shadow-md shadow-[#8CC540]/30' 
-                                        : 'text-gray-700 hover:bg-gray-50'
+                                        : 'text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800'
                                     }
                                 `}>
                                     {day}
                                 </span>
-                                {hasEvent(day) && !isToday(day) && (
-                                    <span className="w-1 h-1 rounded-full bg-[#8CC540] absolute bottom-1"></span>
+                                {hasEvent(day) && (
+                                    <span className={`w-1 h-1 rounded-full absolute bottom-1.5 ${isToday(day) ? 'bg-white' : 'bg-[#8CC540]'}`}></span>
                                 )}
                             </>
                         ) : (
@@ -95,12 +95,12 @@ export function MiniCalendar({ activeDates }: MiniCalendarProps) {
                 ))}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-[#8CC540]"></span>
-                    <span className="text-xs text-gray-500 font-medium">Jadwal Aktif</span>
+                    <span className="w-2 h-2 rounded-full bg-[#8CC540] shadow-sm shadow-[#8CC540]/20"></span>
+                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-extrabold uppercase tracking-wider">Jadwal Aktif</span>
                 </div>
-                 <p className="text-xs text-gray-400 leading-snug">
+                 <p className="text-[11px] text-slate-400 dark:text-zinc-500 leading-snug font-medium">
                     Kalender ini hanya untuk referensi visual jadwal Anda.
                 </p>
             </div>

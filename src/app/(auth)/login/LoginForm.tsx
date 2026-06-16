@@ -99,13 +99,13 @@ export default function LoginForm() {
         <div className="login-container">
             {/* POPUP */}
             {popup.show && (
-                <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 }}>
-                    <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "12px", textAlign: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.2)", maxWidth: "400px", width: "80%" }}>
-                        <h3 style={{ color: popup.type === "success" ? "#2ecc71" : "#e74c3c", marginBottom: "10px" }}>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000]">
+                    <div className="bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-[30px] rounded-xl text-center shadow-xl max-w-[400px] w-[80%]">
+                        <h3 className={`text-xl font-bold mb-[10px] ${popup.type === "success" ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
                             {popup.type === "success" ? "Berhasil!" : "Gagal!"}
                         </h3>
-                        <p style={{ marginBottom: "20px", color: "#333" }}>{popup.message}</p>
-                        <button onClick={closePopup} style={{ backgroundColor: popup.type === "success" ? "#2ecc71" : "#e74c3c", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
+                        <p className="mb-[20px] text-slate-700 dark:text-zinc-300">{popup.message}</p>
+                        <button onClick={closePopup} className={`border-none py-2.5 px-[20px] rounded-[6px] cursor-pointer font-bold text-white transition-colors ${popup.type === "success" ? "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700" : "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"}`}>
                             Lanjut
                         </button>
                     </div>
@@ -131,14 +131,14 @@ export default function LoginForm() {
 
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
-                            <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500" }}>Email</label>
+                            <label className="block mb-2 text-sm font-medium text-slate-700 dark:text-zinc-300">Email</label>
                             <input type="email" placeholder="name@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required disabled={isLoading} />
                         </div>
 
                         <div className="form-group" style={{ position: "relative" }}>
-                            <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500" }}>Password</label>
+                            <label className="block mb-2 text-sm font-medium text-slate-700 dark:text-zinc-300">Password</label>
                             <input type={showPassword ? "text" : "password"} placeholder="••••••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required disabled={isLoading} />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: "10px", top: "38px", background: "none", border: "none", cursor: "pointer", color: "#666" }}>
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-[38px] bg-transparent border-none cursor-pointer text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-400">
                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>

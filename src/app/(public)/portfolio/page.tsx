@@ -86,9 +86,9 @@ export default function PortfolioPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7]">
+    <div className="min-h-screen bg-[#F7F7F7] dark:bg-zinc-900 transition-colors duration-300">
       {/* Hero Section */}
-      <section className="relative pt-50 pb-20 bg-gradient-to-br from-[#8CC55A]/10 via-white to-[#E2B546]/10 overflow-hidden">
+      <section className="relative pt-50 pb-20 bg-gradient-to-br from-[#8CC55A]/10 via-white to-[#E2B546]/10 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 overflow-hidden transition-colors duration-300">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#8CC55A]/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#E2B546]/10 rounded-full blur-3xl"></div>
 
@@ -107,10 +107,10 @@ export default function PortfolioPage() {
             >
               Portfolio Kami
             </motion.div>
-            <h1 className="text-[#333333] mb-6">
+            <h1 className="text-[#333333] dark:text-zinc-100 mb-6 font-bold text-4xl">
               Proyek yang Telah Kami Kerjakan
             </h1>
-            <p className="text-[#868686] text-xl max-w-3xl mx-auto">
+            <p className="text-[#868686] dark:text-zinc-400 text-xl max-w-3xl mx-auto">
               Jelajahi koleksi lengkap proyek desain dan arsitektur yang telah
               kami selesaikan dengan penuh dedikasi dan kreativitas
             </p>
@@ -123,11 +123,11 @@ export default function PortfolioPage() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="max-w-4xl mx-auto"
           >
-            <div className="bg-white rounded-xl shadow-lg p-6 space-y-6">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 space-y-6 border dark:border-zinc-800">
               {/* Search Bar */}
               <div className="relative">
                 <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#868686]"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#868686] dark:text-zinc-500"
                   size={20}
                 />
                 <Input
@@ -135,13 +135,13 @@ export default function PortfolioPage() {
                   placeholder="Cari portfolio berdasarkan nama atau deskripsi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 h-12 border-gray-200 focus:border-[#8CC55A]"
+                  className="pl-12 h-12 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-gray-800 dark:text-zinc-100 focus:border-[#8CC55A]"
                 />
               </div>
 
               {/* Category Filters */}
               <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2 text-[#868686]">
+                <div className="flex items-center gap-2 text-[#868686] dark:text-zinc-400">
                   <Filter size={20} />
                   <span>Kategori:</span>
                 </div>
@@ -149,10 +149,10 @@ export default function PortfolioPage() {
                   <motion.button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-4 py-2 rounded-lg transition-all ${
+                    className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
                       selectedCategory === category
                         ? "bg-[#8CC55A] text-white shadow-md"
-                        : "bg-gray-100 text-[#868686] hover:bg-gray-200"
+                        : "bg-gray-100 dark:bg-zinc-850 text-[#868686] dark:text-zinc-350 hover:bg-gray-200 dark:hover:bg-zinc-750"
                     }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -165,10 +165,10 @@ export default function PortfolioPage() {
                 <div className="ml-auto flex gap-2">
                   <motion.button
                     onClick={() => setGridView("2")}
-                    className={`p-2 rounded-lg transition-all ${
+                    className={`p-2 rounded-lg transition-all cursor-pointer ${
                       gridView === "2"
                         ? "bg-[#8CC55A] text-white"
-                        : "bg-gray-100 text-[#868686] hover:bg-gray-200"
+                        : "bg-gray-100 dark:bg-zinc-850 text-[#868686] dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
                     }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -177,10 +177,10 @@ export default function PortfolioPage() {
                   </motion.button>
                   <motion.button
                     onClick={() => setGridView("3")}
-                    className={`p-2 rounded-lg transition-all ${
+                    className={`p-2 rounded-lg transition-all cursor-pointer ${
                       gridView === "3"
                         ? "bg-[#8CC55A] text-white"
-                        : "bg-gray-100 text-[#868686] hover:bg-gray-200"
+                        : "bg-gray-100 dark:bg-zinc-850 text-[#868686] dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
                     }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -191,7 +191,7 @@ export default function PortfolioPage() {
               </div>
 
               {/* Results Count */}
-              <div className="text-[#868686]">
+              <div className="text-[#868686] dark:text-zinc-400">
                 Menampilkan {filteredPortfolios.length} dari {portfolios.length}{" "}
                 portfolio
               </div>
@@ -248,7 +248,7 @@ export default function PortfolioPage() {
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ y: -10 }}
                     onClick={() => setSelectedPortfolio(portfolio)}
-                    className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all cursor-pointer group"
+                    className="bg-white dark:bg-zinc-950 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all cursor-pointer group border dark:border-zinc-800"
                   >
                     {/* Image */}
                     <div className="relative h-64 overflow-hidden">
@@ -272,15 +272,15 @@ export default function PortfolioPage() {
 
                     {/* Content */}
                     <div className="p-6">
-                      <h3 className="text-[#333333] mb-2">
+                      <h3 className="text-[#333333] dark:text-zinc-100 mb-2 font-bold">
                         {portfolio.displayName}
                       </h3>
-                      <p className="text-[#868686] mb-4 line-clamp-2">
+                      <p className="text-[#868686] dark:text-zinc-400 mb-4 line-clamp-2 text-sm">
                         {portfolio.description}
                       </p>
 
                       {/* Date */}
-                      <div className="flex items-center gap-2 text-[#868686]">
+                      <div className="flex items-center gap-2 text-[#868686] dark:text-zinc-500">
                         <Calendar size={16} />
                         <span>{formatDate(portfolio.endDate)}</span>
                       </div>
@@ -294,7 +294,7 @@ export default function PortfolioPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-zinc-950 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -334,14 +334,14 @@ export default function PortfolioPage() {
         open={!!selectedPortfolio}
         onOpenChange={() => setSelectedPortfolio(null)}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-8 mt-12">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-8 mt-12">
           {selectedPortfolio && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl text-[#333333]">
+                <DialogTitle className="text-2xl text-[#333333] dark:text-zinc-100">
                   {selectedPortfolio.displayName}
                 </DialogTitle>
-                <DialogDescription className="text-[#868686]">
+                <DialogDescription className="text-[#868686] dark:text-zinc-400">
                   Detail lengkap portfolio proyek
                 </DialogDescription>
               </DialogHeader>
@@ -359,14 +359,14 @@ export default function PortfolioPage() {
                 {/* Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <div className="text-[#868686] mb-2">Kategori</div>
-                    <div className="inline-block px-4 py-2 bg-[#8CC55A]/10 text-[#8CC55A] rounded-lg border border-[#8CC55A]/20">
+                    <div className="text-[#868686] dark:text-zinc-400 mb-2">Kategori</div>
+                    <div className="inline-block px-4 py-2 bg-[#8CC55A]/10 dark:bg-[#8CC55A]/20 text-[#8CC55A] rounded-lg border border-[#8CC55A]/20">
                       {selectedPortfolio.category}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[#868686] mb-2">Tanggal Selesai</div>
-                    <div className="flex items-center gap-2 text-[#333333]">
+                    <div className="text-[#868686] dark:text-zinc-400 mb-2">Tanggal Selesai</div>
+                    <div className="flex items-center gap-2 text-[#333333] dark:text-zinc-100">
                       <Calendar size={20} className="text-[#8CC55A]" />
                       <span>{formatDate(selectedPortfolio.endDate)}</span>
                     </div>
@@ -375,20 +375,20 @@ export default function PortfolioPage() {
 
                 {/* Description */}
                 <div>
-                  <div className="text-[#868686] mb-2">Deskripsi</div>
-                  <p className="text-[#333333] leading-relaxed">
+                  <div className="text-[#868686] dark:text-zinc-400 mb-2">Deskripsi</div>
+                  <p className="text-[#333333] dark:text-zinc-200 leading-relaxed">
                     {selectedPortfolio.description}
                   </p>
                 </div>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-wrap gap-4 pt-4 border-t">
+                <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
                   <Button
                     onClick={() => {
                       setSelectedPortfolio(null);
                       router.push("/booking");
                     }}
-                    className="flex-1 bg-[#8CC55A] hover:bg-[#7AB84A]"
+                    className="flex-1 bg-[#8CC55A] hover:bg-[#7AB84A] text-white"
                   >
                     Booking Konsultasi
                   </Button>
@@ -398,7 +398,7 @@ export default function PortfolioPage() {
                       router.push("/contact");
                     }}
                     variant="outline"
-                    className="flex-1 border-[#8CC55A] text-[#8CC55A] hover:bg-[#8CC55A]/10 bg-white"
+                    className="flex-1 border-[#8CC55A] text-[#8CC55A] hover:bg-[#8CC55A]/10 bg-white dark:bg-zinc-900"
                   >
                     Hubungi Kami
                   </Button>

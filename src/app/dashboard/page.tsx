@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     if (role === 'admin') {
         redirect('/dashboard/admin');
     } else if (role === 'client') {
-        redirect('/dashboard/client');
+        redirect('/dashboard/client/my-project');
     }
 
     // Fallback for unknown roles

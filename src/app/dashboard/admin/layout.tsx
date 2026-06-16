@@ -198,7 +198,7 @@ export default function AdminDashboardLayout({
               Kembali ke Beranda
             </button>
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() => signOut({ callbackUrl: "/" })}
               className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50 font-semibold text-sm rounded-xl transition-all cursor-pointer"
             >
               Keluar Sesi

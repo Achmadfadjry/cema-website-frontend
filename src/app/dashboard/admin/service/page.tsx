@@ -182,9 +182,17 @@ export default function ServicesPage() {
   };
 
   const openEditModal = (service: ServiceItem) => {
+    let normalizedCategory = service.category;
+    if (normalizedCategory) {
+      const lower = normalizedCategory.toLowerCase();
+      if (["design", "build", "design & build"].includes(lower)) {
+        normalizedCategory = lower;
+      }
+    }
+
     setFormData({
       title: service.title,
-      category: service.category,
+      category: normalizedCategory,
       price: service.price,
       description: service.description,
       image: service.image,
@@ -474,15 +482,21 @@ export default function ServicesPage() {
                 <label className="block text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Kategori
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.category}
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-medium"
-                  placeholder="Contoh: Design / Construction"
-                />
+                  className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-medium cursor-pointer"
+                >
+                  <option value="" disabled>Pilih Kategori</option>
+                  <option value="design">Design</option>
+                  <option value="build">Build</option>
+                  <option value="design & build">Design & Build</option>
+                  {formData.category && !["design", "build", "design & build"].includes(formData.category.toLowerCase()) && (
+                    <option value={formData.category}>{formData.category}</option>
+                  )}
+                </select>
               </div>
 
               <div>

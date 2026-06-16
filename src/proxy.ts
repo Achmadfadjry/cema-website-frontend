@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     if (userRole === "client" && path.startsWith("/dashboard/admin")) {
-      return NextResponse.redirect(new URL("/dashboard/client", request.url));
+      return NextResponse.redirect(new URL("/dashboard/client/my-project", request.url));
     }
 
     if (userRole === "admin" && path.startsWith("/dashboard/client")) {

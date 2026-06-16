@@ -7,6 +7,7 @@ import { CustomButton } from "@/components/ui/custom-button";
 import { useRouter } from "next/navigation";
 import { User, LayoutDashboard } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { UserRole } from "@/lib/types";
 import type { User as UserType } from "@/lib/types";
 import Image from "next/image";
 
@@ -48,7 +49,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
   const handleLogout = async () => {
     setIsOpen(false);
-    await signOut({ callbackUrl: "/login" });
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
@@ -88,16 +89,18 @@ export function UserMenu({ user }: UserMenuProps) {
             </div>
 
             {/* Menu Items */}
-            <div className="py-2">
-              <Link
-                href="/dashboard"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <LayoutDashboard size={16} className="text-gray-500" />
-                Dashboard
-              </Link>
-            </div>
+            {user.role === UserRole.ADMIN && (
+              <div className="py-2">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <LayoutDashboard size={16} className="text-gray-500" />
+                  Dashboard
+                </Link>
+              </div>
+            )}
 
             {/* Logout Button */}
             <div className="px-4 py-3 border-t border-gray-200">
