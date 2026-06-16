@@ -49,7 +49,34 @@ export default function ChatPage() {
                 }));
                 // Sort by timestamp just in case
                 loadedMessages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-                setMessages(loadedMessages);
+
+                const normalize = (txt: string) => (txt || "").toLowerCase().replace(/\s+/g, "").trim();
+
+                // Deduplicate consecutive identical messages from the same sender within 5 minutes
+                const deduplicatedMessages: Message[] = [];
+                loadedMessages.forEach((msg) => {
+                    if (deduplicatedMessages.length === 0) {
+                        deduplicatedMessages.push(msg);
+                    } else {
+                        const prevMsg = deduplicatedMessages[deduplicatedMessages.length - 1];
+                        const t1 = msg.timestamp || 0;
+                        const t2 = prevMsg.timestamp || 0;
+
+                        const isDuplicate =
+                            msg.sender === prevMsg.sender &&
+                            normalize(msg.text) === normalize(prevMsg.text) &&
+                            (t1 === 0 || t2 === 0 || Math.abs(t1 - t2) < 300000); // 5 minutes
+
+                        if (!isDuplicate) {
+                            deduplicatedMessages.push(msg);
+                        }
+                    }
+                });
+
+                console.log("DEBUG CLIENT-CHAT: loadedMessages =", loadedMessages);
+                console.log("DEBUG CLIENT-CHAT: deduplicatedMessages =", deduplicatedMessages);
+
+                setMessages(deduplicatedMessages);
             } else {
                 setMessages([]);
             }
@@ -146,7 +173,29 @@ export default function ChatPage() {
                             <p className="text-[11px] font-semibold text-slate-400 dark:text-zinc-500 max-w-[220px] leading-relaxed">Kami di sini untuk membantu Anda dengan pertanyaan apa pun mengenai proyek Anda.</p>
                         </div>
                     ) : (
-                        messages.map((msg) => {
+                      (() => {
+                        const norm = (txt: string) => (txt || "").toLowerCase().replace(/\s+/g, "").trim();
+                        const deduplicated: Message[] = [];
+                        messages.forEach((msg) => {
+                            if (deduplicated.length === 0) {
+                                deduplicated.push(msg);
+                            } else {
+                                const prevMsg = deduplicated[deduplicated.length - 1];
+                                const t1 = msg.timestamp || 0;
+                                const t2 = prevMsg.timestamp || 0;
+
+                                const isDuplicate =
+                                    msg.sender === prevMsg.sender &&
+                                    norm(msg.text) === norm(prevMsg.text) &&
+                                    (t1 === 0 || t2 === 0 || Math.abs(t1 - t2) < 300000); // 5 minutes
+
+                                if (!isDuplicate) {
+                                    deduplicated.push(msg);
+                                }
+                            }
+                        });
+
+                        return deduplicated.map((msg) => {
                             const isClient = msg.sender === "client";
                             return (
                                 <div
@@ -169,7 +218,8 @@ export default function ChatPage() {
                                     </div>
                                 </div>
                             );
-                        })
+                        });
+                      })()
                     )}
                     <div ref={messagesEndRef} />
                 </div>
