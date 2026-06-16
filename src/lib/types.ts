@@ -225,4 +225,5 @@ export interface ChatClient {
   lastMessage: string;
   unreadCount: number;
   online: boolean;
+  timestamp?: number;
 }
