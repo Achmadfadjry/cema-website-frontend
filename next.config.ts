@@ -1,6 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
+  async rewrites() {
+    return {
+      fallback: [
+        {
+          source: "/api/:path*",
+          destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+        },
+      ],
+    };
+  },
   images: {
     remotePatterns: [
       {
@@ -20,12 +35,6 @@ const nextConfig = {
         hostname: "**",
       },
     ],
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
   },
 };
 
