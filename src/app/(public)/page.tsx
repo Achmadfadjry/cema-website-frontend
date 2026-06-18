@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Slider } from "../../components/ui/slider";
 import DesignQuizUser from "@/components/ui/DesignQuizUser";
+import { Portfolio } from "@/lib/types";
+import { portfolioService } from "@/services/portfolioService";
 
 // --- 1. Interface Data ---
 interface CalculatorSettings {
@@ -41,12 +43,7 @@ interface ServiceItemUI {
   color: string; // Properti UI tambahan
 }
 
-interface PortfolioItem {
-  id: number;
-  title: string;
-  category: string;
-  image: string;
-}
+
 
 interface Stat {
   number: string;
@@ -54,15 +51,26 @@ interface Stat {
 }
 
 export default function HomePage() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const onNavigate = (page: string) => {
     window.location.href = `/${page}`;
   };
 
+  const getImageUrl = (photoUrl: string) => {
+    if (!photoUrl) return "https://placehold.co/600x400?text=No+Image";
+    if (photoUrl.startsWith("data:")) return photoUrl;
+    if (photoUrl.startsWith("http")) return photoUrl;
+
+    // Logic from Admin: remove '/api' suffix if present to access /uploads correctly
+    const baseUrl = API_URL.replace(/\/api$/, "");
+    return `${baseUrl}/uploads/${photoUrl}`;
+  };
+
   // --- State Data API ---
   const [services, setServices] = useState<ServiceItemUI[]>([]);
   const [settings, setSettings] = useState<CalculatorSettings | null>(null);
+  const [portfolioItems, setPortfolioItems] = useState<Portfolio[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // --- Calculator State ---
@@ -82,13 +90,17 @@ export default function HomePage() {
 
         const headers: HeadersInit = { "Content-Type": "application/json" };
 
-        const [settingsRes, servicesRes] = await Promise.all([
+        const [settingsRes, servicesRes, portfoliosData] = await Promise.all([
           fetch(`${API_URL}/calculator/settings`, {
             headers,
             cache: "no-store",
           }),
           fetch(`${API_URL}/services/shown`, { headers, cache: "no-store" }),
+          portfolioService.getAllPortfolios(),
         ]);
+
+        // --- HANDLE PORTFOLIO ---
+        setPortfolioItems(portfoliosData.filter((p) => p.isShown));
 
         // --- 1. HANDLE SETTINGS (KALKULATOR) ---
         if (!settingsRes.ok) {
@@ -244,42 +256,12 @@ export default function HomePage() {
     { value: "luxury", label: "Luxury" },
   ];
 
-  // Mock Portfolio Items (Tetap statis sesuai request, fokus di kalkulator)
-  const portfolioItems: PortfolioItem[] = [
-    {
-      id: 1,
-      title: "Luxury Villa Design",
-      category: "Interior",
-      image:
-        "https://images.unsplash.com/photo-1581784878214-8d5596b98a01?q=80&w=1080",
-    },
-    {
-      id: 2,
-      title: "Modern Living Space",
-      category: "Interior",
-      image:
-        "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=1080",
-    },
-    {
-      id: 3,
-      title: "Contemporary Kitchen",
-      category: "Interior",
-      image:
-        "https://images.unsplash.com/photo-1641823911769-c55f23c25143?q=80&w=1080",
-    },
-    {
-      id: 4,
-      title: "Elegant Bedroom",
-      category: "Interior",
-      image:
-        "https://images.unsplash.com/photo-1704428382583-c9c7c1e55d94?q=80&w=1080",
-    },
-  ];
+  // Mock Portfolio Items REMOVED - using API data
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-br from-[#F7F7F7] via-white to-[#F7F7F7] overflow-hidden">
+      <section className="relative py-20 bg-gradient-to-br from-[#F7F7F7] via-white to-[#F7F7F7] dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
@@ -292,21 +274,21 @@ export default function HomePage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.1 }}
-                className="inline-block mb-6 px-6 py-2 bg-[#8CC55A]/10 rounded-full text-[#8CC55A] border border-[#8CC55A]/20"
+                className="inline-block mb-6 px-6 py-2 bg-[#8CC55A]/10 dark:bg-[#8CC55A]/20 rounded-full text-[#8CC55A] border border-[#8CC55A]/20"
               >
                 Arsitektur & Desain Interior Profesional
               </motion.div>
-              <h1 className="text-[#333333] mb-6 text-4xl lg:text-5xl font-bold leading-tight">
+              <h1 className="text-[#333333] dark:text-zinc-100 mb-6 text-4xl lg:text-5xl font-bold leading-tight">
                 Wujudkan Hunian Impian Anda Bersama CEMA Design
               </h1>
-              <p className="text-[#868686] text-lg mb-10 leading-relaxed">
+              <p className="text-[#868686] dark:text-zinc-400 text-lg mb-10 leading-relaxed">
                 Layanan lengkap dari konsep hingga realisasi untuk menciptakan
                 ruang yang sempurna sesuai visi Anda
               </p>
               <div className="flex flex-wrap gap-4">
                 <motion.button
                   onClick={() => onNavigate("booking")}
-                  className="px-8 py-4 bg-[#8CC55A] text-white rounded-lg hover:bg-[#7AB84A] transition-colors inline-flex items-center gap-2 shadow-lg font-medium"
+                  className="px-8 py-4 bg-[#8CC55A] text-white rounded-lg hover:bg-[#7AB84A] transition-colors inline-flex items-center gap-2 shadow-lg font-medium cursor-pointer"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -318,7 +300,7 @@ export default function HomePage() {
                       .getElementById("calculator")
                       ?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-8 py-4 bg-white text-[#8CC55A] border-2 border-[#8CC55A] rounded-lg hover:bg-[#8CC55A] hover:text-white transition-colors inline-flex items-center gap-2 shadow-lg font-medium"
+                  className="px-8 py-4 bg-white dark:bg-zinc-950 text-[#8CC55A] border-2 border-[#8CC55A] rounded-lg hover:bg-[#8CC55A] hover:text-white transition-colors inline-flex items-center gap-2 shadow-lg font-medium cursor-pointer"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -340,8 +322,8 @@ export default function HomePage() {
                   alt="3D Interior Design"
                   className="w-full h-auto object-contain"
                   onError={(e) =>
-                    (e.currentTarget.src =
-                      "https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=600")
+                  (e.currentTarget.src =
+                    "https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=600")
                   }
                 />
               </div>
@@ -351,7 +333,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white border-t border-gray-200">
+      <section className="py-16 bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-800 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -378,7 +360,7 @@ export default function HomePage() {
                 <div className="text-3xl md:text-4xl text-[#8CC55A] font-bold mb-2">
                   {stat.number}
                 </div>
-                <div className="text-[#868686] font-medium">{stat.label}</div>
+                <div className="text-[#868686] dark:text-zinc-400 font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -386,7 +368,7 @@ export default function HomePage() {
       </section>
 
       {/* Services Section - DATA LIVE DARI API */}
-      <section className="py-20 bg-white" id="services">
+      <section className="py-20 bg-white dark:bg-zinc-950 transition-colors duration-300" id="services">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -394,10 +376,10 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-[#333333] mb-4 font-bold text-4xl">
+            <h2 className="text-[#333333] dark:text-zinc-100 mb-4 font-bold text-4xl">
               Layanan Terbaik Kami
             </h2>
-            <p className="text-[#868686] max-w-2xl mx-auto text-lg">
+            <p className="text-[#868686] dark:text-zinc-400 max-w-2xl mx-auto text-lg">
               Solusi lengkap untuk semua kebutuhan arsitektur dan desain
               interior Anda
             </p>
@@ -417,7 +399,7 @@ export default function HomePage() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   whileHover={{ y: -10 }}
-                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col border border-gray-100"
+                  className="bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col border border-gray-100 dark:border-zinc-800"
                 >
                   {/* Image Header */}
                   <div className="relative h-56 overflow-hidden">
@@ -427,7 +409,7 @@ export default function HomePage() {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                    <div className="absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center shadow-lg bg-white">
+                    <div className="absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center shadow-lg bg-white dark:bg-zinc-800">
                       <service.icon
                         size={24}
                         style={{ color: service.color }}
@@ -437,10 +419,10 @@ export default function HomePage() {
 
                   {/* Content */}
                   <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-[#333333] mb-2 font-bold text-lg">
+                    <h3 className="text-[#333333] dark:text-zinc-100 mb-2 font-bold text-lg">
                       {service.title}
                     </h3>
-                    <p className="text-[#868686] mb-4 line-clamp-2 text-sm">
+                    <p className="text-[#868686] dark:text-zinc-400 mb-4 line-clamp-2 text-sm">
                       {service.description ||
                         "Layanan profesional dengan standar kualitas tinggi."}
                     </p>
@@ -464,11 +446,11 @@ export default function HomePage() {
                                 className="text-[#8CC55A] flex-shrink-0 mt-0.5"
                                 size={16}
                               />
-                              <span className="text-[#868686]">{feature}</span>
+                              <span className="text-[#868686] dark:text-zinc-400">{feature}</span>
                             </div>
                           ))
                       ) : (
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-400 dark:text-zinc-500">
                           Fitur layanan lengkap tersedia.
                         </div>
                       )}
@@ -477,7 +459,7 @@ export default function HomePage() {
                     {/* CTA Button */}
                     <motion.button
                       onClick={() => onNavigate("booking")}
-                      className="w-full py-3 rounded-lg text-white transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                      className="w-full py-3 rounded-lg text-white transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer"
                       style={{ backgroundColor: service.color }}
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
@@ -493,7 +475,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <motion.button
               onClick={() => onNavigate("services")}
-              className="px-8 py-4 border-2 border-[#8CC55A] text-[#8CC55A] rounded-lg hover:bg-[#8CC55A] hover:text-white transition-colors inline-flex items-center gap-2 shadow-lg"
+              className="px-8 py-4 border-2 border-[#8CC55A] text-[#8CC55A] rounded-lg hover:bg-[#8CC55A] hover:text-white transition-colors inline-flex items-center gap-2 shadow-lg cursor-pointer"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -504,7 +486,7 @@ export default function HomePage() {
       </section>
 
       {/* Portfolio Highlights */}
-      <section className="py-20 bg-[#F7F7F7]">
+      <section className="py-20 bg-[#F7F7F7] dark:bg-zinc-900 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -512,46 +494,52 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-[#333333] mb-4 font-bold text-4xl">
+            <h2 className="text-[#333333] dark:text-zinc-100 mb-4 font-bold text-4xl">
               Portfolio Kami
             </h2>
-            <p className="text-[#868686]">
+            <p className="text-[#868686] dark:text-zinc-400">
               Lihat beberapa proyek terbaik yang telah kami kerjakan
             </p>
           </motion.div>
 
-          <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory">
-            {portfolioItems.map((item: PortfolioItem, index: number) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                className="flex-shrink-0 w-80 snap-center cursor-pointer"
-              >
-                <div className="relative h-96 rounded-lg overflow-hidden group">
-                  <ImageWithFallback
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                    <div>
-                      <div className="text-[#8CC55A] mb-2">{item.category}</div>
-                      <h3 className="text-white">{item.title}</h3>
+          {isLoading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="animate-spin text-[#8CC55A]" size={40} />
+            </div>
+          ) : (
+            <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory">
+              {portfolioItems.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="flex-shrink-0 w-80 snap-center cursor-pointer"
+                >
+                  <div className="relative h-96 rounded-lg overflow-hidden group">
+                    <ImageWithFallback
+                      src={getImageUrl(item.photoUrl)}
+                      alt={item.displayName}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
+                      <div>
+                        <div className="text-[#8CC55A] mb-2">{item.category}</div>
+                        <h3 className="text-white">{item.displayName}</h3>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-8">
             <motion.button
               onClick={() => onNavigate("portfolio")}
-              className="px-6 py-3 border-2 border-[#8CC55A] text-[#8CC55A] rounded-lg hover:bg-[#8CC55A] hover:text-white transition-colors inline-flex items-center gap-2"
+              className="px-6 py-3 border-2 border-[#8CC55A] text-[#8CC55A] rounded-lg hover:bg-[#8CC55A] hover:text-white transition-colors inline-flex items-center gap-2 cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -562,7 +550,7 @@ export default function HomePage() {
       </section>
 
       {/* Calculator Section - UPDATED LOGIC */}
-      <section className="py-20 bg-white" id="calculator">
+      <section className="py-20 bg-white dark:bg-zinc-950 transition-colors duration-300" id="calculator">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -571,8 +559,8 @@ export default function HomePage() {
             className="text-center mb-12"
           >
             <Calculator size={64} className="mx-auto mb-4 text-[#8CC55A]" />
-            <h2 className="text-[#333333] mb-4">Kalkulator Estimasi Biaya</h2>
-            <p className="text-[#868686] max-w-2xl mx-auto">
+            <h2 className="text-[#333333] dark:text-zinc-100 mb-4">Kalkulator Estimasi Biaya</h2>
+            <p className="text-[#868686] dark:text-zinc-400 max-w-2xl mx-auto">
               Hitung perkiraan biaya proyek desain Anda dengan mudah
             </p>
           </motion.div>
@@ -583,40 +571,41 @@ export default function HomePage() {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="lg:col-span-2 bg-[#F7F7F7] rounded-lg shadow-lg p-8"
+              className="lg:col-span-2 bg-[#F7F7F7] dark:bg-zinc-900 rounded-lg shadow-lg p-8 border dark:border-zinc-800"
             >
-              <h3 className="text-[#333333] mb-6">Input Detail Proyek</h3>
+              <h3 className="text-[#333333] dark:text-zinc-100 mb-6">Input Detail Proyek</h3>
 
               <div className="space-y-8">
                 {/* Building Area */}
                 <div>
-                  <label className="block text-[#333333] mb-2">
+                  <label className="block text-[#333333] dark:text-zinc-200 mb-2">
                     <Home className="inline mr-2" size={18} />
                     Luas Bangunan
                   </label>
                   <div className="flex items-center gap-4">
-                    <Slider
-                      value={area}
-                      onValueChange={setArea}
-                      min={20}
-                      max={500}
-                      step={10}
-                      className="flex-1"
-                    />
+                    <div className="flex-1">
+                      <Slider
+                        value={area}
+                        onValueChange={setArea}
+                        min={20}
+                        max={500}
+                        step={10}
+                      />
+                    </div>
                     <div className="w-24 text-center">
-                      <span className="text-[#333333]">{area[0]} m²</span>
+                      <span className="text-[#333333] dark:text-zinc-250 font-bold">{area[0]} m²</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Service Type - DYNAMIC FROM API */}
                 <div>
-                  <label className="block text-[#333333] mb-2">
+                  <label className="block text-[#333333] dark:text-zinc-200 mb-2">
                     <Sparkles className="inline mr-2" size={18} />
                     Jenis Layanan
                   </label>
                   {isLoading ? (
-                    <div className="text-gray-400 text-sm">
+                    <div className="text-gray-400 dark:text-zinc-500 text-sm">
                       Memuat layanan...
                     </div>
                   ) : (
@@ -625,15 +614,14 @@ export default function HomePage() {
                         <motion.button
                           key={service._id}
                           onClick={() => setSelectedServiceId(service._id)}
-                          className={`p-4 rounded-lg border-2 transition-colors flex flex-col items-center justify-center text-center h-full ${
-                            selectedServiceId === service._id
-                              ? "border-[#8CC55A] bg-[#8CC55A]/10"
-                              : "border-gray-200 hover:border-[#8CC55A]"
-                          }`}
+                          className={`p-4 rounded-lg border-2 transition-colors flex flex-col items-center justify-center text-center h-full cursor-pointer ${selectedServiceId === service._id
+                            ? "border-[#8CC55A] bg-[#8CC55A]/10 dark:bg-[#8CC55A]/20"
+                            : "border-gray-200 dark:border-zinc-800 hover:border-[#8CC55A]"
+                            }`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          <div className="text-[#333333] font-medium text-sm">
+                          <div className="text-[#333333] dark:text-zinc-200 font-medium text-sm">
                             {service.title}
                           </div>
                           <div className="text-[#8CC55A] text-xs mt-1">
@@ -647,7 +635,7 @@ export default function HomePage() {
 
                 {/* Material Type */}
                 <div>
-                  <label className="block text-[#333333] mb-2">
+                  <label className="block text-[#333333] dark:text-zinc-200 mb-2">
                     <Sparkles className="inline mr-2" size={18} />
                     Kualitas Material
                   </label>
@@ -656,15 +644,14 @@ export default function HomePage() {
                       <motion.button
                         key={option.value}
                         onClick={() => setMaterialType(option.value as any)}
-                        className={`p-4 rounded-lg border-2 transition-colors ${
-                          materialType === option.value
-                            ? "border-[#8CC55A] bg-[#8CC55A]/10"
-                            : "border-gray-200 hover:border-[#8CC55A]"
-                        }`}
+                        className={`p-4 rounded-lg border-2 transition-colors cursor-pointer ${materialType === option.value
+                          ? "border-[#8CC55A] bg-[#8CC55A]/10 dark:bg-[#8CC55A]/20"
+                          : "border-gray-200 dark:border-zinc-800 hover:border-[#8CC55A]"
+                          }`}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <div className="text-[#333333]">{option.label}</div>
+                        <div className="text-[#333333] dark:text-zinc-200">{option.label}</div>
                       </motion.button>
                     ))}
                   </div>
@@ -672,20 +659,21 @@ export default function HomePage() {
 
                 {/* Room Count */}
                 <div>
-                  <label className="block text-[#333333] mb-2">
+                  <label className="block text-[#333333] dark:text-zinc-200 mb-2">
                     Jumlah Ruangan
                   </label>
                   <div className="flex items-center gap-4">
-                    <Slider
-                      value={roomCount}
-                      onValueChange={setRoomCount}
-                      min={1}
-                      max={10}
-                      step={1}
-                      className="flex-1"
-                    />
+                    <div className="flex-1">
+                      <Slider
+                        value={roomCount}
+                        onValueChange={setRoomCount}
+                        min={1}
+                        max={10}
+                        step={1}
+                      />
+                    </div>
                     <div className="w-24 text-center">
-                      <span className="text-[#333333]">
+                      <span className="text-[#333333] dark:text-zinc-250 font-bold">
                         {roomCount[0]} ruangan
                       </span>
                     </div>
@@ -695,7 +683,7 @@ export default function HomePage() {
                 {/* Calculate Button */}
                 <motion.button
                   onClick={handleCalculate}
-                  className="w-full bg-[#8CC55A] text-white py-3 rounded-lg hover:bg-[#7AB84A] transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-[#8CC55A] text-white py-3 rounded-lg hover:bg-[#7AB84A] transition-colors flex items-center justify-center gap-2 cursor-pointer font-bold"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -713,8 +701,8 @@ export default function HomePage() {
               className="space-y-6"
             >
               {/* Estimate Result */}
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h4 className="text-[#333333] mb-4">
+              <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 border dark:border-zinc-800">
+                <h4 className="text-[#333333] dark:text-zinc-100 mb-4">
                   <DollarSign className="inline mr-2" size={20} />
                   Estimasi Biaya
                 </h4>
@@ -730,7 +718,7 @@ export default function HomePage() {
                         {formatCurrency(calculateEstimate())}
                       </div>
                     </div>
-                    <div className="text-[#868686]">
+                    <div className="text-[#868686] dark:text-zinc-400">
                       <p className="mb-2">Rincian:</p>
                       <ul className="space-y-1 text-sm">
                         <li>• Luas: {area[0]} m²</li>
@@ -752,7 +740,7 @@ export default function HomePage() {
                     </div>
                     <motion.button
                       onClick={() => onNavigate("booking")}
-                      className="w-full bg-[#E2B546] text-white py-2 rounded-lg hover:bg-[#D1A435] transition-colors font-medium"
+                      className="w-full bg-[#E2B546] text-white py-2 rounded-lg hover:bg-[#D1A435] transition-colors font-medium cursor-pointer"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -760,7 +748,7 @@ export default function HomePage() {
                     </motion.button>
                   </motion.div>
                 ) : (
-                  <div className="text-center text-[#868686] py-8">
+                  <div className="text-center text-[#868686] dark:text-zinc-400 py-8">
                     <Calculator size={48} className="mx-auto mb-4 opacity-30" />
                     <p>Isi form dan klik "Hitung Estimasi"</p>
                   </div>
@@ -768,11 +756,11 @@ export default function HomePage() {
               </div>
 
               {/* Info Box */}
-              <div className="bg-[#E2B546]/10 border border-[#E2B546] rounded-lg p-6">
+              <div className="bg-[#E2B546]/10 dark:bg-[#E2B546]/5 border border-[#E2B546] rounded-lg p-6">
                 <div className="text-[#E2B546] mb-3 font-medium">
                   💡 Catatan
                 </div>
-                <ul className="space-y-2 text-[#868686] text-sm">
+                <ul className="space-y-2 text-[#868686] dark:text-zinc-400 text-sm">
                   <li>• Estimasi ini adalah perkiraan kasar</li>
                   <li>• Harga final dapat berbeda</li>
                   <li>• Konsultasi gratis untuk detail lebih lanjut</li>
@@ -784,7 +772,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-[#F7F7F7]">
+      <section className="py-20 bg-[#F7F7F7] dark:bg-zinc-950 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto">
             <DesignQuizUser />
@@ -793,7 +781,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-[#F7F7F7]">
+      <section className="py-20 bg-[#F7F7F7] dark:bg-zinc-900 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -801,10 +789,10 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-[#333333] mb-4 font-bold text-4xl">
+            <h2 className="text-[#333333] dark:text-zinc-100 mb-4 font-bold text-4xl">
               Apa Kata Klien Kami
             </h2>
-            <p className="text-[#868686]">
+            <p className="text-[#868686] dark:text-zinc-400">
               Kepuasan klien adalah prioritas utama kami
             </p>
           </motion.div>
@@ -817,7 +805,7 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white p-6 rounded-lg shadow-md"
+                className="bg-white dark:bg-zinc-950 p-6 rounded-lg shadow-md border dark:border-zinc-800"
               >
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
@@ -826,13 +814,13 @@ export default function HomePage() {
                     </span>
                   ))}
                 </div>
-                <p className="text-[#868686] mb-4">
+                <p className="text-[#868686] dark:text-zinc-400 mb-4">
                   "Sangat puas dengan hasil desain dari Company X. Tim sangat
                   profesional dan memahami kebutuhan kami."
                 </p>
                 <div>
-                  <div className="text-[#333333]">Budi Santoso</div>
-                  <div className="text-[#868686]">Jakarta</div>
+                  <div className="text-[#333333] dark:text-zinc-200">Budi Santoso</div>
+                  <div className="text-[#868686] dark:text-zinc-500 text-sm">Jakarta</div>
                 </div>
               </motion.div>
             ))}

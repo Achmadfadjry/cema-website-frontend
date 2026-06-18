@@ -426,3 +426,106 @@ body {
   font-weight: bold;
   color: #666;
 }
+
+/* Dark Mode overrides for About page */
+.dark body {
+  background: #09090b;
+  color: #ededed;
+}
+
+.dark .hero-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(24, 24, 27, 0.7),
+    rgba(9, 9, 11, 0.9)
+  );
+}
+
+.dark .section-desc {
+  color: #a1a1aa;
+}
+
+.dark .vision {
+  border-color: #8cc55a;
+  background: #18181b;
+  color: #ededed;
+}
+
+.dark .timeline {
+  background: #09090b;
+}
+
+.dark .timeline p {
+  color: #a1a1aa;
+}
+
+.dark .timeline-card {
+  background: #18181b;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dark .timeline-card::before {
+  border-color: #18181b;
+}
+
+.dark .timeline-card h3 {
+  color: #fff;
+}
+
+.dark .timeline-card p {
+  color: #a1a1aa;
+}
+
+.dark .values {
+  background: #09090b;
+}
+
+.dark .value-card {
+  background: linear-gradient(to bottom right, #18181b, #09090b);
+}
+
+.dark .value-card h3 {
+  color: #fff;
+}
+
+.dark .value-card p {
+  color: #a1a1aa;
+}
+
+.dark .cta {
+  background: #09090b;
+}
+
+.dark .cta h2 {
+  color: #fff;
+}
+
+.dark .cta p {
+  color: #a1a1aa;
+}
+
+.dark .btn-outline {
+  background: #18181b;
+  color: #8cc55a;
+  border-color: #8cc55a;
+}
+
+.dark .btn-outline:hover {
+  background: #27272a;
+}
+
+.dark .map-section {
+  background: #09090b;
+}
+
+.dark .map-section h2 {
+  color: #fff;
+}
+
+.dark .map-section p {
+  color: #a1a1aa;
+}
+
+.dark .map-container {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}

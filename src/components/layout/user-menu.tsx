@@ -6,7 +6,10 @@ import Link from "next/link";
 import { CustomButton } from "@/components/ui/custom-button";
 import { useRouter } from "next/navigation";
 import { User, LayoutDashboard } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { UserRole } from "@/lib/types";
 import type { User as UserType } from "@/lib/types";
+import Image from "next/image";
 
 interface UserMenuProps {
   user: UserType;
@@ -44,10 +47,9 @@ export function UserMenu({ user }: UserMenuProps) {
     };
   }, [isOpen]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
     setIsOpen(false);
-    router.push("/login");
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
@@ -57,7 +59,17 @@ export function UserMenu({ user }: UserMenuProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-center w-10 h-10 rounded-full bg-[#00BCD4] text-white font-semibold text-sm hover:bg-[#00ACC1] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00BCD4] focus:ring-offset-2"
       >
-        {getInitials(user.name)}
+        {user.profilePicture ? (
+          <Image
+            width={320}
+            height={320}
+            src={user.profilePicture}
+            alt={user.name}
+            className="w-full h-full rounded-full object-cover"
+          />
+        ) : (
+          getInitials(user.name)
+        )}
       </button>
 
       {/* Dropdown Menu */}
@@ -77,16 +89,18 @@ export function UserMenu({ user }: UserMenuProps) {
             </div>
 
             {/* Menu Items */}
-            <div className="py-2">
-              <Link
-                href="/dashboard"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <LayoutDashboard size={16} className="text-gray-500" />
-                Dashboard
-              </Link>
-            </div>
+            {user.role === UserRole.ADMIN && (
+              <div className="py-2">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <LayoutDashboard size={16} className="text-gray-500" />
+                  Dashboard
+                </Link>
+              </div>
+            )}
 
             {/* Logout Button */}
             <div className="px-4 py-3 border-t border-gray-200">

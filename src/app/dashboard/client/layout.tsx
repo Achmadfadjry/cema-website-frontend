@@ -1,32 +1,34 @@
-'use client';
+"use client";
 
-import { ClientHeader, ClientNavigation } from '@/components/dashboard/client';
+import { Navbar } from "@/components/layout/Navbar";
+import { ClientNavigation } from "@/components/dashboard/client";
+import { Footer } from "@/components/layout/Footer";
 
 interface ClientDashboardLayoutProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
-export default function ClientDashboardLayout({ children }: ClientDashboardLayoutProps) {
-    // TODO: Get from auth context
-    const userName = 'John Doe';
+export default function ClientDashboardLayout({
+  children,
+}: ClientDashboardLayoutProps) {
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-zinc-950 dark:text-zinc-100 flex flex-col antialiased selection:bg-[#8CC540]/20">
+      {/* Public Navbar */}
+      <Navbar />
 
-    const handleLogout = () => {
-        alert('Logout clicked');
-    };
+      {/* Main Content Area */}
+      <div className="pt-20 md:pt-[7.5vw] flex-1 flex flex-col">
+        {/* Horizontal Navigation for Client Dashboard */}
+        <ClientNavigation />
+        
+        {/* Children content page */}
+        <main className="flex-1 w-full bg-slate-50 dark:bg-zinc-950">
+          {children}
+        </main>
+      </div>
 
-    return (
-        // Root container: Full viewport, no page scroll
-        <div className="h-screen w-full bg-gray-50 flex flex-col overflow-hidden">
-            {/* Fixed Header Section */}
-            <div className="flex-none">
-                <ClientHeader userName={userName} onLogout={handleLogout} />
-                <ClientNavigation />
-            </div>
-
-            {/* Scrollable Main Content Area */}
-            <main className="flex-1 overflow-hidden flex flex-col">
-                {children}
-            </main>
-        </div>
-    );
+      {/* Public Footer */}
+      <Footer />
+    </div>
+  );
 }

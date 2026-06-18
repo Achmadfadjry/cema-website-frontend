@@ -10,7 +10,6 @@ declare module "next-auth" {
       role: string;
       profilePicture?: string;
     } & DefaultSession["user"];
-    accessToken?: string;
   }
 
   /**
@@ -18,7 +17,7 @@ declare module "next-auth" {
    */
   interface User {
     id: string;
-    name: string;
+    name?: string;
     email: string;
     role: string;
     profilePicture?: string;

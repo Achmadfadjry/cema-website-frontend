@@ -24,7 +24,7 @@ export function ImageWithFallback({
     const handleError = () => {
         setHasError(true);
         // Fallback to a placeholder or default image
-        setImgSrc('/placeholder-image.png'); // You can change this to your preferred fallback
+        setImgSrc('https://placehold.co/600x400?text=No+Image'); // You can change this to your preferred fallback
     };
 
     if (width && height) {

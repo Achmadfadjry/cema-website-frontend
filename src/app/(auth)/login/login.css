@@ -1,17 +1,35 @@
-
-* {
+.login-container {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    color: #333;
     font-family: "Poppins", sans-serif;
-}
-
-.login-container {
-  width: 100%;
-  min-height: 100dvh;
+    width: 100%;
+    min-height: 100dvh;
     display: flex;
     flex-direction: row;
+    color: #333;
+}
+
+.login-container input,
+.login-container button,
+.login-container select,
+.login-container textarea,
+.login-container a,
+.login-container h1,
+.login-container h2,
+.login-container p {
+    color: #333;
+}
+
+.h-content {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.p-content {
+  font-size: 20px;
+  margin: 0;
 }
 
 .left-container {
@@ -186,4 +204,118 @@
 .signup-link:hover {
         color: #8CC540;
   text-decoration: underline;
+}
+
+/* Dark Mode Overrides */
+.dark .login-container {
+    color: #f4f4f5; /* zinc-100 */
+}
+
+.dark .login-container input,
+.dark .login-container button,
+.dark .login-container select,
+.dark .login-container textarea,
+.dark .login-container a,
+.dark .login-container h1,
+.dark .login-container h2,
+.dark .login-container p {
+    color: #f4f4f5; /* zinc-100 */
+}
+
+.dark .left-container {
+    background-color: #09090b; /* zinc-950 */
+}
+
+.dark .brand {
+    color: #a1a1aa; /* zinc-400 */
+}
+
+.dark .login-form {
+    background-color: #18181b; /* zinc-900 */
+    border: 1px solid #27272a; /* zinc-800 */
+}
+
+.dark .welcome-text {
+    color: #a1a1aa; /* zinc-400 */
+}
+
+.dark .login-form h2 {
+    color: #f4f4f5; /* zinc-100 */
+}
+
+.dark .form-group input {
+    border: 1px solid #27272a; /* zinc-800 */
+    background-color: #09090b; /* zinc-950 */
+    color: #f4f4f5; /* zinc-100 */
+}
+
+.dark .remember {
+    color: #a1a1aa; /* zinc-400 */
+}
+
+.dark .forgot {
+    color: #a1a1aa; /* zinc-400 */
+}
+
+.dark .forgot:hover {
+    color: #8cc540;
+}
+
+.dark .continue-btn {
+    background: #8cc540;
+    color: white;
+}
+
+.dark .divider {
+    color: #a1a1aa; /* zinc-400 */
+}
+
+.dark .google-btn,
+.dark .facebook-btn {
+    border: 1px solid #27272a; /* zinc-800 */
+    background: #09090b; /* zinc-950 */
+    color: #f4f4f5; /* zinc-100 */
+}
+
+.dark .google-btn:hover,
+.dark .facebook-btn:hover {
+    background: #18181b; /* zinc-900 */
+}
+
+.dark .signup {
+    color: #a1a1aa; /* zinc-400 */
+}
+
+.dark .signup-link {
+    color: #f4f4f5; /* zinc-100 */
+}
+
+.dark .signup-link:hover {
+    color: #8cc540;
+}
+
+/* Responsive adjustments for mobile and tablet */
+@media (max-width: 1024px) {
+  .login-container {
+    flex-direction: column !important;
+  }
+  
+  .left-container {
+    display: none !important;
+  }
+
+  .right-container {
+    flex: 1 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  }
+
+  .login-form {
+    width: 100% !important;
+    max-width: 500px !important;
+    padding: 30px 20px !important;
+    box-sizing: border-box !important;
+  }
 }

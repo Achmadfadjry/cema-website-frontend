@@ -11,6 +11,10 @@ import {
   X,
   Loader2,
 } from "lucide-react";
+import {
+  fetchCalculatorDataAction,
+  saveCalculatorSettingsAction,
+} from "@/app/actions/calculator-actions";
 
 interface CalculatorSettings {
   materials: {
@@ -36,9 +40,6 @@ interface SimulationState {
 }
 
 export default function CalculatorPage() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-  // Mengambil session dan status dari NextAuth
   const { data: session, status } = useSession();
 
   const [settings, setSettings] = useState<CalculatorSettings>({
@@ -61,61 +62,23 @@ export default function CalculatorPage() {
 
   // === 1. LOAD DATA DARI API ===
   useEffect(() => {
-    // Tunggu sampai status authentikasi selesai loading
     if (status === "loading") return;
 
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        const result = await fetchCalculatorDataAction();
 
-        const token = session?.accessToken;
+        if (result.success && result.data) {
+          const { settings, services } = result.data;
+          setSettings(settings);
+          setServices(services);
 
-        const headers: HeadersInit = {
-          "Content-Type": "application/json",
-        };
-
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
-
-        const [settingsRes, servicesRes] = await Promise.all([
-          fetch(`${API_URL}/calculator/settings`, { headers }),
-          fetch(`${API_URL}/services`, { headers }),
-        ]);
-
-        if (!settingsRes.ok) {
-          console.error("Gagal load settings:", settingsRes.status);
-        } else {
-          const settingsData = await settingsRes.json();
-          const realData = settingsData.data || settingsData;
-
-          if (realData) {
-            setSettings({
-              materials: realData.materials || {
-                standard: 1.0,
-                premium: 1.4,
-                luxury: 1.8,
-              },
-              roomPrice: realData.pricePerRoom ?? 0,
-            });
-          }
-        }
-
-        if (!servicesRes.ok) {
-          console.error("Gagal load services:", servicesRes.status);
-        } else {
-          const servicesData = await servicesRes.json();
-          if (
-            servicesData.status === "ok" &&
-            Array.isArray(servicesData.data)
-          ) {
-            setServices(servicesData.data);
-            if (servicesData.data.length > 0) {
-              setSim((prev) => ({
-                ...prev,
-                serviceId: servicesData.data[0]._id,
-              }));
-            }
+          if (services.length > 0) {
+            setSim((prev) => ({
+              ...prev,
+              serviceId: services[0]._id,
+            }));
           }
         }
       } catch (error) {
@@ -126,40 +89,19 @@ export default function CalculatorPage() {
     };
 
     fetchData();
-  }, [API_URL, session, status]);
+  }, [status]);
 
   // === 2. SIMPAN KE API (PUT) ===
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // [SESUAI NEXT-AUTH.D.TS] Ambil token lagi untuk aksi simpan
-      const token = session?.accessToken;
+      const result = await saveCalculatorSettingsAction(settings);
 
-      if (!token) {
-        alert("Sesi tidak valid atau kadaluarsa. Silakan login ulang.");
-        return;
-      }
-
-      const payload = {
-        pricePerRoom: settings.roomPrice,
-        materials: settings.materials,
-      };
-
-      const res = await fetch(`${API_URL}/calculator/settings`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
+      if (result.success) {
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
       } else {
-        const errData = await res.json();
-        alert(`Gagal menyimpan: ${errData.message || "Unauthorized"}`);
+        alert(`Gagal menyimpan: ${result.message}`);
       }
     } catch (error) {
       console.error("Error saving:", error);
@@ -192,35 +134,35 @@ export default function CalculatorPage() {
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin text-blue-600" />
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // Jika user tidak login (dan halaman ini diproteksi)
   if (status === "unauthenticated") {
     return (
-      <div className="p-10 text-center">Akses Ditolak. Silakan Login.</div>
+      <div className="p-10 text-center text-red-500 font-bold">
+        Akses Ditolak. Silakan Login Ulang.
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-6 animate-in fade-in duration-300 relative">
+      
       {/* Toast Notification */}
       {showToast && (
-        <div className="fixed bottom-5 right-5 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className="bg-gray-900 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 border border-gray-700">
-            <CheckCircle className="text-green-400" size={20} />
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-right duration-350">
+          <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-xs font-bold transition-all bg-white dark:bg-zinc-900 border-green-200 dark:border-green-900/30 text-green-800 dark:text-green-400">
+            <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
             <div>
-              <h4 className="font-bold text-sm">Berhasil Disimpan!</h4>
-              <p className="text-xs text-gray-400">
-                Database telah diperbarui.
-              </p>
+              <p className="leading-tight">Berhasil Disimpan!</p>
+              <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium mt-0.5">Database telah diperbarui.</p>
             </div>
             <button
               onClick={() => setShowToast(false)}
-              className="ml-4 text-gray-500 hover:text-white"
+              className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -229,82 +171,80 @@ export default function CalculatorPage() {
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm gap-4 transition-colors duration-300">
         <div className="flex items-center gap-3">
-          <div className="bg-purple-100 p-2 rounded-lg">
-            <Calculator className="text-purple-600" size={24} />
+          <div className="bg-primary/10 text-primary p-2.5 rounded-xl">
+            <Calculator size={22} />
           </div>
           <div>
-            <h3 className="font-bold text-lg text-gray-800">
+            <h3 className="font-black text-lg text-slate-800 dark:text-zinc-100 tracking-tight">
               Pengaturan Kalkulator Harga
             </h3>
-            <p className="text-sm text-gray-500">
-              Sesuaikan logika perhitungan & multiplier
+            <p className="text-xs text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider mt-0.5">
+              Sesuaikan logika perhitungan & multiplier simulasi biaya
             </p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Kolom Kiri: Admin Settings */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-8">
-          {/* Harga Layanan */}
+        
+        {/* Left Panel: Settings */}
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm space-y-6 transition-colors duration-300">
+          
+          {/* Service Price list */}
           <div>
-            <h4 className="font-bold text-gray-800 mb-4 pb-2 border-b flex items-center gap-2">
-              <span className="bg-blue-100 text-blue-600 w-6 h-6 flex items-center justify-center rounded-full text-xs">
+            <h4 className="font-black text-xs uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-4 pb-2 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2">
+              <span className="bg-primary/10 text-primary w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">
                 1
               </span>
-              Harga Layanan (Live dari Database)
+              Harga Dasar Jasa (Live database)
             </h4>
-            <div className="space-y-4">
+            
+            <div className="space-y-3">
               {services.length === 0 ? (
-                <p className="text-sm text-gray-400">Belum ada data layanan.</p>
+                <p className="text-xs text-slate-400 dark:text-zinc-500 italic">Belum ada data layanan dasar.</p>
               ) : (
                 services.map((srv) => (
-                  <div key={srv._id}>
-                    <label className="text-sm font-medium text-gray-600 capitalize">
-                      {srv.title}{" "}
-                      <span className="text-xs text-gray-400">
-                        ({srv.category})
-                      </span>
+                  <div key={srv._id} className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                      {srv.title} <span className="text-[9px] text-slate-400 dark:text-zinc-500">({srv.category})</span>
                     </label>
-                    <div className="relative mt-1">
-                      <input
-                        type="text"
-                        disabled
-                        className="w-full border border-gray-200 bg-gray-50 pl-3 p-2 rounded text-gray-500 cursor-not-allowed"
-                        value={formatRupiah(Number(srv.price))}
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      disabled
+                      className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-slate-500 dark:text-zinc-400 text-xs font-semibold cursor-not-allowed"
+                      value={`${formatRupiah(Number(srv.price))}/m²`}
+                    />
                   </div>
                 ))
               )}
-              <p className="text-xs text-blue-500 italic mt-2">
-                * Untuk mengubah harga dasar layanan, silakan edit melalui menu
-                "Daftar Layanan" (Services).
+              <p className="text-[10px] text-primary font-bold italic mt-2">
+                * Harga dasar di atas sinkron dari menu Kelola Layanan.
               </p>
             </div>
           </div>
 
-          {/* Biaya Ruangan */}
+          {/* Room Price */}
           <div>
-            <h4 className="font-bold text-gray-800 mb-4 pb-2 border-b flex items-center gap-2">
-              <span className="bg-orange-100 text-orange-600 w-6 h-6 flex items-center justify-center rounded-full text-xs">
+            <h4 className="font-black text-xs uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-4 pb-2 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2">
+              <span className="bg-primary/10 text-primary w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">
                 2
               </span>
-              Biaya Tambahan Per Ruangan
+              Biaya Tambahan Per Sekat/Ruangan
             </h4>
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Harga Partisi/Ruangan
+            
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                Harga Per Ruangan
               </label>
-              <div className="relative mt-1">
-                <span className="absolute left-3 top-2 text-gray-500 text-sm">
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-zinc-500">
                   Rp
                 </span>
                 <input
                   type="number"
-                  className="w-full border border-gray-300 pl-10 p-2 rounded focus:ring-2 focus:ring-orange-500 outline-none text-gray-900"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 transition-all text-xs font-bold"
                   value={settings.roomPrice}
                   onChange={(e) =>
                     setSettings({
@@ -317,24 +257,25 @@ export default function CalculatorPage() {
             </div>
           </div>
 
-          {/* Multiplier Material */}
+          {/* Material Multiplier */}
           <div>
-            <h4 className="font-bold text-gray-800 mb-4 pb-2 border-b flex items-center gap-2">
-              <span className="bg-green-100 text-green-600 w-6 h-6 flex items-center justify-center rounded-full text-xs">
+            <h4 className="font-black text-xs uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-4 pb-2 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2">
+              <span className="bg-primary/10 text-primary w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">
                 3
               </span>
-              Faktor Pengali Material
+              Faktor Multiplier Material
             </h4>
+            
             <div className="grid grid-cols-3 gap-4">
               {Object.entries(settings.materials).map(([key, value]) => (
-                <div key={key}>
-                  <label className="text-xs font-medium text-gray-600 block mb-1 capitalize">
+                <div key={key} className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-slate-500 dark:text-zinc-400 block text-center uppercase tracking-wider capitalize">
                     {key}
                   </label>
                   <input
                     type="number"
                     step="0.1"
-                    className="w-full border border-gray-300 p-2 rounded text-center focus:ring-2 focus:ring-green-500 outline-none text-gray-900"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 text-center text-xs font-black"
                     value={value}
                     onChange={(e) =>
                       setSettings({
@@ -346,45 +287,48 @@ export default function CalculatorPage() {
                       })
                     }
                   />
-                  <span className="text-xs text-gray-400 block text-center mt-1">
-                    x (kali)
+                  <span className="text-[9px] text-slate-400 dark:text-zinc-500 font-bold block text-center uppercase">
+                    kali (x)
                   </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Tombol Simpan */}
+          {/* Save Button */}
           <div className="pt-4">
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-3 px-4 rounded-lg transition-colors font-medium shadow-lg shadow-blue-200"
+              className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white py-3 px-4 rounded-xl transition-all font-bold text-xs shadow-md shadow-primary/20 hover:shadow-lg disabled:cursor-not-allowed cursor-pointer active:scale-95"
             >
               {isSaving ? (
-                <Loader2 className="animate-spin" size={18} />
+                <Loader2 className="animate-spin" size={16} />
               ) : (
-                <Save size={18} />
+                <Save size={16} />
               )}
               {isSaving ? "Menyimpan..." : "Simpan Pengaturan Kalkulator"}
             </button>
           </div>
         </div>
 
-        {/* Kolom Kanan: Preview */}
-        <div className="bg-gray-50 p-6 rounded-lg border border-dashed border-gray-300 flex flex-col">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-1 flex flex-col">
-            <div className="flex items-center gap-2 mb-6 text-gray-400 uppercase text-xs font-bold tracking-wider">
-              <RefreshCw size={14} /> Live Preview (Tampilan User)
+        {/* Right Panel: Live User Simulation Preview */}
+        <div className="bg-slate-50 dark:bg-zinc-950 p-6 rounded-2xl border border-dashed border-slate-350 dark:border-zinc-800 flex flex-col transition-colors duration-300">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-sm flex-1 flex flex-col transition-colors duration-300">
+            
+            <div className="flex items-center gap-2 mb-6 text-slate-400 dark:text-zinc-500 uppercase text-[10px] font-black tracking-widest border-b border-slate-50 dark:border-zinc-800 pb-3">
+              <RefreshCw size={12} className="animate-spin-slow" />
+              Live Preview (Tampilan Klien)
             </div>
 
-            <div className="space-y-5 flex-1">
+            <div className="space-y-6 flex-1 text-xs font-bold">
+              {/* Luas Bangunan */}
               <div>
-                <div className="flex justify-between mb-1">
-                  <label className="text-xs text-gray-500 uppercase font-bold flex items-center gap-1">
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1">
                     <LayoutGrid size={12} /> Luas Bangunan
                   </label>
-                  <span className="font-bold text-gray-800 text-sm">
+                  <span className="font-black text-slate-800 dark:text-zinc-200 text-sm">
                     {sim.area} m²
                   </span>
                 </div>
@@ -396,16 +340,17 @@ export default function CalculatorPage() {
                   onChange={(e) =>
                     setSim({ ...sim, area: Number(e.target.value) })
                   }
-                  className="w-full accent-blue-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-primary h-1.5 bg-slate-100 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
 
+              {/* Service Selection */}
               <div>
-                <label className="text-xs text-gray-500 uppercase font-bold">
+                <label className="block text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                   Jenis Layanan
                 </label>
                 <select
-                  className="w-full mt-1 border border-gray-200 p-2 rounded-lg text-sm bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none text-slate-800 dark:text-zinc-200 text-xs font-medium cursor-pointer transition-all"
                   value={sim.serviceId}
                   onChange={(e) =>
                     setSim({ ...sim, serviceId: e.target.value })
@@ -413,29 +358,30 @@ export default function CalculatorPage() {
                 >
                   {services.map((srv) => (
                     <option key={srv._id} value={srv._id}>
-                      {srv.title} ({formatRupiah(Number(srv.price))})
+                      {srv.title} ({formatRupiah(Number(srv.price))}/m²)
                     </option>
                   ))}
                 </select>
               </div>
 
+              {/* Quality Selection */}
               <div>
-                <label className="text-xs text-gray-500 uppercase font-bold">
+                <label className="block text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
                   Kualitas Material
                 </label>
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2">
                   {(["standard", "premium", "luxury"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => setSim({ ...sim, material: m })}
-                      className={`flex-1 py-2 text-xs rounded-md border capitalize transition-all ${
+                      className={`flex-1 py-2 rounded-xl border capitalize transition-all cursor-pointer text-center ${
                         sim.material === m
-                          ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                          ? "bg-primary text-white border-primary shadow-md shadow-primary/10 font-bold"
+                          : "bg-slate-50 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-900 font-medium"
                       }`}
                     >
-                      {m} <br />{" "}
-                      <span className="text-[10px] opacity-80">
+                      <span className="text-xs">{m}</span>
+                      <span className="block text-[9px] opacity-75 font-bold mt-0.5">
                         x{settings.materials[m]}
                       </span>
                     </button>
@@ -443,12 +389,13 @@ export default function CalculatorPage() {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-dashed border-gray-100">
-                <div className="flex justify-between mb-1">
-                  <label className="text-xs text-gray-500 uppercase font-bold">
+              {/* Rooms Selection */}
+              <div className="pt-4 border-t border-dashed border-slate-100 dark:border-zinc-800">
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                     Jumlah Ruangan
                   </label>
-                  <span className="font-bold text-gray-800 text-sm">
+                  <span className="font-black text-slate-800 dark:text-zinc-200 text-sm">
                     {sim.rooms} Ruangan
                   </span>
                 </div>
@@ -460,42 +407,46 @@ export default function CalculatorPage() {
                   onChange={(e) =>
                     setSim({ ...sim, rooms: Number(e.target.value) })
                   }
-                  className="w-full accent-orange-500 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-primary h-1.5 bg-slate-100 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer"
                 />
-                <p className="text-[10px] text-gray-400 mt-1 text-right">
+                <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-1 text-right font-black uppercase">
                   + {formatRupiah(settings.roomPrice)} / ruangan
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-dashed border-gray-200">
-              <p className="text-gray-500 text-sm mb-1">Estimasi Total Biaya</p>
+            {/* Calculations total */}
+            <div className="mt-6 pt-4 border-t border-dashed border-slate-200 dark:border-zinc-800">
+              <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1">Estimasi Total Biaya</p>
               <div className="flex items-center gap-2">
-                <h2 className="text-3xl font-bold text-green-600">
+                <h2 className="text-2xl font-black text-primary">
                   {formatRupiah(calculateSimulation())}
                 </h2>
               </div>
-              <div className="mt-3 text-xs text-gray-500 bg-gray-50 p-3 rounded border border-gray-100 space-y-1">
-                <div className="flex justify-between">
+              
+              <div className="mt-4 text-[10px] text-slate-500 dark:text-zinc-450 bg-slate-50 dark:bg-zinc-950 p-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-2">
+                <div className="flex justify-between font-bold">
                   <span>Biaya Konstruksi:</span>
-                  <span className="font-medium">
+                  <span className="font-black text-slate-800 dark:text-zinc-300">
                     {formatRupiah(
                       sim.area *
-                        getSelectedServicePrice() *
-                        settings.materials[sim.material]
+                      getSelectedServicePrice() *
+                      settings.materials[sim.material]
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between text-orange-600">
+                <div className="flex justify-between font-bold text-primary">
                   <span>Biaya Ruangan ({sim.rooms}x):</span>
-                  <span className="font-medium">
+                  <span className="font-black">
                     + {formatRupiah(sim.rooms * settings.roomPrice)}
                   </span>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
+
       </div>
     </div>
   );
