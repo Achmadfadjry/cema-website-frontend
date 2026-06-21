@@ -1,28 +1,77 @@
 name: Continuous Deployment
 
 on:
-  workflow_run:
-    workflows: ["Continuous Testing"]
-    types:
-      - completed
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
-  # PREVIEW STAGE
-  deploy-preview:
-    name: Deploy Preview to Vercel
+  # BUILD STAGE
+  build:
+    name: Build Next.js Project
     runs-on: ubuntu-latest
-
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Next.js Project
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: "http://localhost:8000"
+          NEXT_PUBLIC_FIREBASE_API_KEY: "dummy-api-key"
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "dummy-domain.firebaseapp.com"
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: "dummy-project-id"
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "dummy-bucket.appspot.com"
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "123456789"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "1:123456789:web:abcdef"
+
+  # TEST STAGE
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test:run
+
+  # PREVIEW STAGE
+  deploy-preview:
+    name: Deploy Preview to Vercel
+    needs: [build, test]
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -44,15 +93,14 @@ jobs:
   # PRODUCTION STAGE
   deploy-production:
     name: Deploy Production to Vercel
+    needs: [build, test]
     runs-on: ubuntu-latest
 
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
