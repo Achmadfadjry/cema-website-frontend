@@ -9,6 +9,8 @@ import { NextRequest } from "next/server";
  * It bypasses the 'session' object (which has the token stripped) and reads
  * directly from the HTTP-only cookie.
  */
+
+// akkakaka
 export async function getBackendToken(): Promise<string | null> {
   const cookieStore = await cookies();
   const headersList = await headers();
