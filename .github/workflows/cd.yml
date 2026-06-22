@@ -88,7 +88,7 @@ jobs:
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Debug - list pulled env var names
-        run: grep -o '^[A-Z_]*=' .vercel/.env.production.local | sort
+        run: cat .vercel/.env.preview.local
 
       - name: Build Project Artifacts (Vercel)
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
